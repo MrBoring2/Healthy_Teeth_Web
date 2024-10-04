@@ -13,7 +13,7 @@ namespace WebSite.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            //Interceptor.RegisterEvents();
+            Interceptor.RegisterEvents();
             await LoadEmployees();
         }
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Shared.Models;
 using System.Net.Http.Json;
+using WebSite.Models;
 using WebSite.Services;
 
 namespace WebSite.Pages
@@ -27,15 +28,20 @@ namespace WebSite.Pages
         }
         protected async Task SaveUser()
         {
+            ResponseModel response;
             if (service.Id != 0)
             {
-                await Http.PutAsJsonAsync("api/User", service);
+                response = await _apiService.PostAsync("api/Services", service);
             }
             else
             {
-                await _apiService.PostAsync("api/Services", service);
+                response = await _apiService.PostAsync("api/Services", service);
             }
-            Cancel();
+            if (response.StatusCode == System.Net.HttpStatusCode.Created)
+            {
+                Cancel();
+            }
+
         }
         public void Cancel()
         {

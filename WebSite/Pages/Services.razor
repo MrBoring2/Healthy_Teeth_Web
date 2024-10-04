@@ -30,13 +30,16 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var service in list)
+                        @if (list.Count() > 0)
                         {
-                            <tr>
-                                <td>@service.Title</td>
-                                <td>@service.Price</td>
-                                <td>@service.Specialization?.Title</td>
-                            </tr>
+                            @foreach (var service in list)
+                            {
+                                <tr>
+                                    <td>@service.Title</td>
+                                    <td>@service.Price</td>
+                                    <td>@service.Specialization?.Title</td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>

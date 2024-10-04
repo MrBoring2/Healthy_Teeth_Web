@@ -19,7 +19,7 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
-           // Interceptor.RegisterEvents();
+            Interceptor.RegisterEvents();
             var a = await _authStateProvider.GetAuthenticationStateAsync();
             Console.WriteLine(a.User.Identity.IsAuthenticated.ToString());
             //await JsRuntime.InvokeVoidAsync("alert", $"{a.User.Identity.IsAuthenticated.ToString()}"); // Alert

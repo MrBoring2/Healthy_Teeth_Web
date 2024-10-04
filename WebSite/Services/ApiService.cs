@@ -37,21 +37,23 @@ namespace WebSite.Services
 
         public async Task<ResponseModel> PostAsync(string path, object data)
         {
-            var msg = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri($"{path}", UriKind.RelativeOrAbsolute),
-                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, MediaTypeNames.Application.Json)
-            };
-            var response = await _httpClient.SendAsync(msg);
+            //var msg = new HttpRequestMessage
+            //{
+            //    Method = HttpMethod.Post,
+            //    RequestUri = new Uri($"{path}", UriKind.RelativeOrAbsolute),
+            //    Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, MediaTypeNames.Application.Json)
+            //};
+            HttpResponseMessage response = new HttpResponseMessage();
             try
             {
+                response = await _httpClient.PostAsync(path, new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, MediaTypeNames.Application.Json));
                 var responseObjects = await response.Content.ReadAsStringAsync();
                 return new ResponseModel(response.StatusCode, responseObjects);
             }
             catch (Exception ex)
             {
-                return new ResponseModel(response.StatusCode, null);
+                Console.WriteLine("Произошла ошибка: " + ex.Message);
+                return new ResponseModel(response.StatusCode, ex.Message);
             }
         }
 

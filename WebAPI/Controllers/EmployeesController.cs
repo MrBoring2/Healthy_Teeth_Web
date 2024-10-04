@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace WebAPI.Controllers
 {
-   
+
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase
@@ -30,7 +30,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
         {
-            return await _context.Employees.ToListAsync();
+            return await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).ToListAsync();
         }
 
         // GET: api/Employees/5
