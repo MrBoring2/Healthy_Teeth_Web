@@ -1,0 +1,92 @@
+﻿@using Entities
+@using Shared.Models
+@using WebSite.Providers
+@using WebSite.Services
+@page "/"
+@inject IJSRuntime JsRuntime
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject CustomStateProvider _authStateProvider
+@inject ApiService _apiService
+<h1>@Title User</h1>
+<hr />
+<EditForm Model="@employee" OnValidSubmit="SaveUser">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="FirstName" class="form-label">Имя</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.FirstName" />
+        </div>
+        <ValidationMessage For="@(() => employee.FirstName)" />
+    </div>
+    <div class="mb-3">
+        <label for="MiddleName" class="form-label">Фамилия</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.MiddleName" />
+        </div>
+        <ValidationMessage For="@(() => employee.MiddleName)" />
+    </div>
+    <div class="mb-3">
+        <label for="LastName" class="form-label">Отчество</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.LastName" />
+        </div>
+        <ValidationMessage For="@(() => employee.LastName)" />
+    </div>
+    <div class="mb-3">
+        <label for="Gender" class="form-label">Пол</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.Gender" />
+        </div>
+        <ValidationMessage For="@(() => employee.Gender)" />
+    </div>
+    <div class="mb-3">
+        <label for="Cellnumber" class="form-label">DateOfBirth</label>
+        <div class="col-md-4">
+            <InputDate class="form-control" @bind-Value="employee.DateOfBirth" />
+        </div>
+        <ValidationMessage For="@(() => employee.DateOfBirth)" />
+    </div>
+    <div class="mb-3">
+        <label for="Phone" class="form-label">Пол</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.Phone" />
+        </div>
+        <ValidationMessage For="@(() => employee.Phone)" />
+    </div>
+    <div class="mb-3">
+        <label for="SpecializationId" class="form-label">Специализация</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" @bind-Value="employee.SpecializationId" />
+        </div>
+        <ValidationMessage For="@(() => employee.SpecializationId)" />
+    </div>
+    <div class="mb-3">
+        <label for="Account.Login" class="form-label">Логин</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.Account.Login" />
+        </div>
+        <ValidationMessage For="@(() => employee.Account.Login)" />
+    </div>
+    <div class="mb-3">
+        <label for="Account.Passsword" class="form-label">Пароль</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="employee.Account.Password" />
+        </div>
+        <ValidationMessage For="@(() => employee.Account.Password)" />
+    </div>
+    <div class="mb-3">
+        <label for="Account.RoleId" class="form-label">Роль</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" @bind-Value="employee.Account.RoleId" />
+        </div>
+        <ValidationMessage For="@(() => employee.Account.RoleId)" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
+    </div>
+</EditForm>
+@code{
+
+}

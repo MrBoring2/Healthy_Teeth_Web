@@ -1,0 +1,44 @@
+﻿@using Entities
+@using Shared.Models
+@using WebSite.Providers
+@using WebSite.Services
+@page "/add-service"
+@inject IJSRuntime JsRuntime
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject CustomStateProvider _authStateProvider
+@inject ApiService _apiService
+<h1>@Title User</h1>
+<hr />
+<EditForm Model="@service" OnValidSubmit="SaveUser">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="Title" class="form-label">Название</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="service.Title" />
+        </div>
+        <ValidationMessage For="@(() => service.Title)" />
+    </div>
+    <div class="mb-3">
+        <label for="Price" class="form-label">Цена</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" @bind-Value="service.Price" />
+        </div>
+        <ValidationMessage For="@(() => service.Price)" />
+    </div>
+    <div class="mb-3">
+        <label for="SpecializatonId" class="form-label">Специализация</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" @bind-Value="service.SpecializationId" />
+        </div>
+        <ValidationMessage For="@(() => service.SpecializationId)" />
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
+    </div>
+</EditForm>
+@code {
+
+}

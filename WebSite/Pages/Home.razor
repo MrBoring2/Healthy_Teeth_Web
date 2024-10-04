@@ -1,0 +1,32 @@
+﻿@page "/auth"
+@using Microsoft.AspNetCore.Components.Authorization
+@using WebSite.Providers
+@inject NavigationManager _navigation
+@inject CustomStateProvider _authStateProvider
+<button class="nav-link btn btn-link" @onclick="Logout">Logout</button>
+<a href="/register">Signup</a>
+<a href="/login">Login</a>
+@* <CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <a href="/profile">Welcome  @context.User.Identity.Name</a>
+           
+        </Authorized>
+        <NotAuthorized>
+            <button class="nav-link btn btn-link" @onclick="Logout">Logout</button>
+            <a href="/register">Signup</a>
+            <a href="/login">Login</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState> *@
+
+
+
+@code {
+    private async Task Logout(MouseEventArgs args)
+    {
+        var result = await _authStateProvider.LogoutAsync();
+        if (result.Success)
+            _navigation.NavigateTo("/");
+    }
+}

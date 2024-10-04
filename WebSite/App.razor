@@ -1,0 +1,31 @@
+﻿@using Blazored.LocalStorage
+@using System.Security.Claims
+@using WebSite.Providers
+
+
+<Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="@OnNavigateAsync">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private async Task OnNavigateAsync(NavigationContext args)
+    {
+
+       /* var auth = await _localStorageService.GetItemAsync<string>("accessToken");
+        var user = await _authProvider.GetAuthenticationStateAsync();
+        Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
+        if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
+        {
+            await _authProvider.GetAuthenticationStateAsync();
+        }*/
+    }
+}

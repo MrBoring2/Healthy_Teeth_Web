@@ -1,0 +1,46 @@
+services:
+  db:
+    container_name: healthy-teeth-db
+    image: postgres:16
+    environment:
+      POSTGRES_DB: "healthy-teeth"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5433:5432"
+    volumes:
+      - healthy-teeth-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+  api:
+    container_name: healthy-teeth-api
+    image: ${DOCKER_REGISTRY-}web-api:v1
+    build:
+      context: .
+      dockerfile: WebAPI/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=0798661
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/healthy-teeth.pfx
+    ports:
+      - "8081:80"
+      - "8082:443"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+  web:
+    image: web_site:v1
+    build:
+      context: .
+      dockerfile: WebSite/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8083:80"
+      - "8084:443"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+volumes:
+  healthy-teeth-pgdata:
+
