@@ -13,12 +13,21 @@ namespace WebSite.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            Console.WriteLine("Сервис на списке сервисов включёг");
             Interceptor.RegisterEvents();
-            await LoadEmployees();
+
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await LoadServices();
+            }
         }
 
 
-        private async Task LoadEmployees()
+        private async Task LoadServices()
         {
             var response = await _apiService.GetAsync("api/services");
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -32,6 +41,10 @@ namespace WebSite.Pages
             StateHasChanged();
         }
 
-        public void Dispose() => Interceptor.DisposeEvent();
+        public void Dispose()
+        {
+            Console.WriteLine("Сервис на списке сервисов отключён");
+            Interceptor.DisposeEvent();
+        }
     }
 }

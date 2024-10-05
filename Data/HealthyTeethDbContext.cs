@@ -32,27 +32,28 @@ namespace Data
         public DbSet<Visit> Visits { get; set; }
         public DbSet<VisitStatus> VisitStatuses { get; set; }
         public DbSet<Weekday> Weekdays { get; set; }
+        public DbSet<EmployeeRefreshToken> EmployeeRefreshTokens { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //const string connectionString = "Host=localhost;Port=5433;Database=healthy-teeth;Persist Security Info=True;User ID=postgres;Password=postgres";
+            const string connectionString = "Host=localhost;Port=5433;Database=healthy-teeth;Persist Security Info=True;User ID=postgres;Password=postgres";
 
-            //optionsBuilder.UseLazyLoadingProxies()
-            //              .LogTo(message => Debug.WriteLine(message))
-            //              .EnableSensitiveDataLogging();
-            //optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message));
+            optionsBuilder.UseLazyLoadingProxies()
+                          .LogTo(message => Debug.WriteLine(message))
+                          .EnableSensitiveDataLogging();
+            optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message));
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.Property(p => p.RefreshTokenExpiryDate).HasColumnType("date");
-                entity.Property(p => p.RefreshToken).HasColumnType("text");
-                entity.HasKey(p => p.EmploeeId);
+                
+                entity.HasKey(p => p.EmployeeId);
                 entity.HasOne(p => p.Employee)
                       .WithOne(p => p.Account)
                       .HasConstraintName("FK_Account_Employee")
-                      .HasForeignKey<Account>(p => p.EmploeeId);
+                      .HasForeignKey<Account>(p => p.EmployeeId)
+                      .IsRequired();
                 entity.HasOne(p => p.Role)
                       .WithMany(p => p.Accounts)
                       .HasConstraintName("FK_Account_Role")
@@ -67,8 +68,20 @@ namespace Data
                 entity.HasOne(p => p.Specialization)
                       .WithMany(p => p.Employees)
                       .HasConstraintName("FK_Employee_Specialization")
-                      .HasForeignKey(p => p.SpecializationId);
+                      .HasForeignKey(p => p.SpecializationId)
+                      .IsRequired();
 
+            });
+
+            modelBuilder.Entity<EmployeeRefreshToken>(entity =>
+            {
+                entity.HasKey(p => p.EmployeeId);
+                entity.Property(p => p.RefreshTokenExpiryDate).HasColumnType("date");
+                entity.Property(p => p.RefreshToken).HasColumnType("text");
+                entity.HasOne(p => p.Account)
+                      .WithOne(p => p.EmployeeRefreshToken)
+                      .HasConstraintName("FK_Employee_RefreshToken")
+                      .HasForeignKey<EmployeeRefreshToken>(p => p.EmployeeId);
             });
 
             modelBuilder.Entity<Patient>(entity =>

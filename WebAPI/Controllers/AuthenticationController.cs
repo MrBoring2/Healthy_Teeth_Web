@@ -74,14 +74,16 @@ namespace WebAPI.Controllers
             {
                 Console.WriteLine("Тоен обновления: " + request.RefreshToken);
                 var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken);
+                Console.WriteLine("Пользователь: " + login);
                 if (string.IsNullOrEmpty(login))
                 {
                     return Unauthorized("Недействительный токен обновления");
                 }
 
                 var user = await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).FirstOrDefaultAsync(x => x.Account.Login.Equals(login));
+
                 var userClaims = ClaimsExtentions.BuildClaimsForUser(user);
-                if(user == null)
+                if (user == null)
                 {
                     return Unauthorized("Недействительный пользователь");
                 }
@@ -100,7 +102,7 @@ namespace WebAPI.Controllers
         [HttpPost("RevokeToken")]
         public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
         {
-            if(request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
+            if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
             {
                 return BadRequest("Токен обновления обязателен");
             }
@@ -116,7 +118,7 @@ namespace WebAPI.Controllers
                     return Ok("Токен обновления успешно отменён");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Ошибка сервера: {ex.Message}");
             }
@@ -124,10 +126,16 @@ namespace WebAPI.Controllers
 
         //[Authorize]
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(LogoutRequest logout)
         {
+            Console.WriteLine($"Выход: {logout.Login}");
             var errorMessage = "";
+            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
+            acc.EmployeeRefreshToken.RefreshToken = null;
+            acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
+            await _context.SaveChangesAsync();
             //await _signInManager.SignOutAsync();
+
 
             var result = new LogoutResponse()
             {

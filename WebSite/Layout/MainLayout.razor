@@ -4,6 +4,8 @@
 @inherits LayoutComponentBase
 @inject ILocalStorageService _localStorageService
 @inject CustomStateProvider _authProvider
+
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -20,6 +22,7 @@
     </main>
 </div>
 
+<RadzenComponents />
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -10,6 +10,7 @@ using WebSite;
 using WebSite.Providers;
 using WebSite.Services;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
+using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -23,7 +24,7 @@ builder.Services.AddHttpClientInterceptor();
 //{
 //    options.BaseAddress = new Uri("https://localhost:8082");
 //});
-
+builder.Services.AddRadzenComponents();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<RefreshTokenService>();

@@ -9,7 +9,7 @@ namespace Entities
 {
     public class Account
     {
-        public int EmploeeId { get; set; }
+        public int EmployeeId { get; set; }
         [MaxLength(20)]
         [Required]
         public string Login { get; set; }
@@ -17,10 +17,9 @@ namespace Entities
         public byte[] PasswordHash { get; set; }
         [Required]
         public byte[] PasswordSalt { get; set; }
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiryDate { get; set; }
         public required int RoleId { get; set; }
         public virtual Role? Role { get; set; }
         public virtual Employee? Employee { get; set; }
+        public virtual EmployeeRefreshToken EmployeeRefreshToken { get; set; }
     }
 }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataMigration.Migrations
 {
     [DbContext(typeof(HealthyTeethDbContext))]
-    [Migration("20241003211431_add_refresh_token")]
-    partial class add_refresh_token
+    [Migration("20241005132503_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,16 +21,13 @@ namespace DataMigration.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.8")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Entities.Account", b =>
                 {
-                    b.Property<int>("EmploeeId")
+                    b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Login")
@@ -46,16 +43,10 @@ namespace DataMigration.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("RefreshTokenExpiryDate")
-                        .HasColumnType("date");
-
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
-                    b.HasKey("EmploeeId");
+                    b.HasKey("EmployeeId");
 
                     b.HasIndex("RoleId");
 
@@ -384,7 +375,7 @@ namespace DataMigration.Migrations
                 {
                     b.HasOne("Entities.Employee", "Employee")
                         .WithOne("Account")
-                        .HasForeignKey("Entities.Account", "EmploeeId")
+                        .HasForeignKey("Entities.Account", "EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Account_Employee");

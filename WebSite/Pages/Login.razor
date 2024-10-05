@@ -3,13 +3,36 @@
 @using Shared.Models
 @using System.ComponentModel.DataAnnotations
 @using WebSite.Providers
+@layout LoginLayout
 @inject NavigationManager _navigation
 @inject CustomStateProvider _authStateProvider
 @inject IJSRuntime JsRuntime
-<h3>Login</h3>
 
-<p>@message</p>
 
+<RadzenLayout class="d-flex align-center justify-content-center" Style="height:100vh;">
+    <RadzenTemplateForm Data="@loginModel" Submit="@((LoginModel model) => { Authenticate(); })" class="d-flex justify-content-center align-items-center rz-mb-8">
+        <RadzenStack AlignItems="AlignItems.Center">
+            <RadzenCard Style="width: 100%; max-width: 1000px;">
+                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">Авторизация</RadzenText>
+                <RadzenFormField Text="Логин" Style="width: 100%;">
+                    <RadzenTextBox @bind-Value="@loginModel.Login" />
+                </RadzenFormField>
+                <RadzenFormField Text="Пароль" Style="width: 100%;">
+                    <RadzenTextBox @bind-Value="@loginModel.Password" />
+                </RadzenFormField>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Text="Войти" />
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</RadzenLayout>
+
+
+
+
+
+@*
 <div id="login">
     <div class="container">
         <!-- Title -->
@@ -43,7 +66,7 @@
             <label>@ErrorMessage</label>
         </div>
     </div>
-</div>
+</div> *@
 
 @code {
     private string ErrorMessage { get; set; }
@@ -51,13 +74,7 @@
     /// <summary>
     /// User name
     /// </summary>
-    [Required]
-    public string UserName { get; set; }
-    /// <summary>
-    /// Password
-    /// </summary>
-    [Required]
-    public string Password { get; set; }
+    LoginModel loginModel = new LoginModel();
     string message = string.Empty;
     bool isDisabled = false;
     public Login()
@@ -68,14 +85,7 @@
     {
         if (!EditContext.Validate())
             return;
-
-        var loginRequest = new LoginModel
-            {
-                Login = UserName,
-                Password = Password
-            };
-
-        var result = await _authStateProvider.LoginAsync(loginRequest);
+        var result = await _authStateProvider.LoginAsync(loginModel);
         if (result.Success)
         {
             Console.WriteLine(result.Login + " " + result.Message + " " + result.Success + " " + result.JwtBearer);

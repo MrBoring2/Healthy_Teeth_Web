@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataMigration.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -100,7 +100,7 @@ namespace DataMigration.Migrations
                     LastName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     MiddleName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     Gender = table.Column<string>(type: "character varying(1)", maxLength: 1, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
                     Phone = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
                     SpecializationId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -140,7 +140,7 @@ namespace DataMigration.Migrations
                 name: "Accounts",
                 columns: table => new
                 {
-                    EmploeeId = table.Column<int>(type: "integer", nullable: false),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
                     Login = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
                     PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
@@ -148,10 +148,10 @@ namespace DataMigration.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Accounts", x => x.EmploeeId);
+                    table.PrimaryKey("PK_Accounts", x => x.EmployeeId);
                     table.ForeignKey(
                         name: "FK_Account_Employee",
-                        column: x => x.EmploeeId,
+                        column: x => x.EmployeeId,
                         principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);

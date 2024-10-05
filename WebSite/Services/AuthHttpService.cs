@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Newtonsoft.Json;
 using Shared.Models;
 using System.Net.Http.Json;
+using System.Net.Mime;
+using System.Security.Claims;
+using System.Text;
 using WebAPI.Identity;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebSite.Services
 {
@@ -98,13 +102,19 @@ namespace WebSite.Services
 
         public async Task<LogoutResponse> LogoutAsync()
         {
+            
+            LogoutRequest request = new LogoutRequest();
             LogoutResponse result = null;
             try
             {
-                var response = await _httpClient.PostAsync("api/Authentication/Logout", null);
+                var token = await _localStorage.GetItemAsync<string>("accessToken");
+                var claims = Utils.Utils.ParseClaimsFromJwt(token);
+                request.Login = claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
+                var response = await _httpClient.PostAsync("api/Authentication/Logout", new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, MediaTypeNames.Application.Json));
                 result = await Task.Run(async () => JsonConvert.DeserializeObject<LogoutResponse>(await response.Content.ReadAsStringAsync()));
             }
             catch (Exception ex) { }
+            Console.WriteLine("Результат выхода: " + result.Success);
 
             if (result != null && result.Success)
                 await SetAccessTokenAsync(null, null);

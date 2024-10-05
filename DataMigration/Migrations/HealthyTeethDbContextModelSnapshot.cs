@@ -27,7 +27,7 @@ namespace DataMigration.Migrations
 
             modelBuilder.Entity("Entities.Account", b =>
                 {
-                    b.Property<int>("EmploeeId")
+                    b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Login")
@@ -43,16 +43,10 @@ namespace DataMigration.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("RefreshTokenExpiryDate")
-                        .HasColumnType("date");
-
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
-                    b.HasKey("EmploeeId");
+                    b.HasKey("EmployeeId");
 
                     b.HasIndex("RoleId");
 
@@ -103,6 +97,22 @@ namespace DataMigration.Migrations
                     b.HasIndex("SpecializationId");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("Entities.EmployeeRefreshToken", b =>
+                {
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("EmployeeId");
+
+                    b.ToTable("EmployeeRefreshTokens");
                 });
 
             modelBuilder.Entity("Entities.Patient", b =>
@@ -381,7 +391,7 @@ namespace DataMigration.Migrations
                 {
                     b.HasOne("Entities.Employee", "Employee")
                         .WithOne("Account")
-                        .HasForeignKey("Entities.Account", "EmploeeId")
+                        .HasForeignKey("Entities.Account", "EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Account_Employee");
@@ -408,6 +418,18 @@ namespace DataMigration.Migrations
                         .HasConstraintName("FK_Employee_Specialization");
 
                     b.Navigation("Specialization");
+                });
+
+            modelBuilder.Entity("Entities.EmployeeRefreshToken", b =>
+                {
+                    b.HasOne("Entities.Account", "Account")
+                        .WithOne("EmployeeRefreshToken")
+                        .HasForeignKey("Entities.EmployeeRefreshToken", "EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Employee_RefreshToken");
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Entities.Schedule", b =>
@@ -489,6 +511,12 @@ namespace DataMigration.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("VisitStatus");
+                });
+
+            modelBuilder.Entity("Entities.Account", b =>
+                {
+                    b.Navigation("EmployeeRefreshToken")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Entities.Employee", b =>

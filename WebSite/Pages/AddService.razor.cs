@@ -21,9 +21,8 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
-            // Interceptor.RegisterEvents();
-            var a = await _authStateProvider.GetAuthenticationStateAsync();
-            Console.WriteLine(a.User.Identity.IsAuthenticated.ToString());
+            Console.WriteLine("Сервис на добавлении сервисах включён");
+            Interceptor.RegisterEvents();
             //await JsRuntime.InvokeVoidAsync("alert", $"{a.User.Identity.IsAuthenticated.ToString()}"); // Alert
         }
         protected async Task SaveUser()
@@ -31,7 +30,7 @@ namespace WebSite.Pages
             ResponseModel response;
             if (service.Id != 0)
             {
-                response = await _apiService.PostAsync("api/Services", service);
+                response = await _apiService.PutAsync("api/Services", service.Id, service);
             }
             else
             {
@@ -47,6 +46,10 @@ namespace WebSite.Pages
         {
             NavigationManager.NavigateTo("/");
         }
-        public void Dispose() => Interceptor.DisposeEvent();
+        public void Dispose()
+        {
+            Console.WriteLine("Сервис на добавлении сервисах отключён");
+            Interceptor.DisposeEvent();
+        }
     }
 }

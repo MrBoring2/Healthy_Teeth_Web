@@ -15,7 +15,14 @@ namespace WebSite.Pages
         protected override async Task OnInitializedAsync()
         {
             Interceptor.RegisterEvents();
-            await LoadEmployees();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await LoadEmployees();
+            }
         }
 
         private async Task LoadEmployees()
@@ -32,6 +39,10 @@ namespace WebSite.Pages
             StateHasChanged();
         }
 
-        public void Dispose() => Interceptor.DisposeEvent();
+        public void Dispose()
+        {
+            Console.WriteLine("Сервис на списке сотруднриках отключён");
+            Interceptor.DisposeEvent();
+        }
     }
 }
