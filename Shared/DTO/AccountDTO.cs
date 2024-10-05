@@ -6,18 +6,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Models
+namespace Shared.DTO
 {
     public class AccountDTO
     {
+        [Required]
         public int EmploeeId { get; set; }
         [MaxLength(20)]
         [Required]
         public string Login { get; set; }
         [Required]
-        [MaxLength(20)]
-        public string Password { get; set; }
-        [Required]
         public int RoleId { get; set; }
+        public RoleDTO Role { get; set; }
     }
 }

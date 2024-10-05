@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Microsoft.AspNetCore.Components;
+using Shared.DTO;
 using Shared.Models;
 using System.Net.Http.Json;
 using WebSite.Models;
@@ -14,7 +15,7 @@ namespace WebSite.Pages
         [Inject]
         public HttpInterceptorService Interceptor { get; set; }
         protected string Title = "Add";
-        protected EmployeeDTO employee = new();
+        protected EmployeeViewModel employee = new();
         protected override async Task OnParametersSetAsync()
         {
 

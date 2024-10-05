@@ -11,6 +11,7 @@ using WebSite.Providers;
 using WebSite.Services;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Radzen;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -32,6 +33,18 @@ builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped<CustomStateProvider>();
 builder.Services.AddScoped<HttpInterceptorService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<CustomStateProvider>());
+//builder.Services.AddSingleton<HubConnection>(sp =>
+//{
+//    var navManager = sp.GetRequiredService<NavigationManager>();
+//    var authHttpService = sp.GetRequiredService<AuthHttpService>();
+//    return new HubConnectionBuilder()
+//    .WithUrl(navManager.ToAbsoluteUri("/healthy_teeth_hub"), options =>
+//    {
+//        options.AccessTokenProvider = async () => await Task.FromResult(await authHttpService.GetAccessTokenAsync());
+//    })
+//    .WithAutomaticReconnect()
+//    .Build();
 
+//});
 builder.Services.AddAuthorizationCore();
 await builder.Build().RunAsync();

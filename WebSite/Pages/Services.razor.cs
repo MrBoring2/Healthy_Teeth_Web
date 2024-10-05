@@ -7,6 +7,8 @@ namespace WebSite.Pages
 {
     public partial class Services : IDisposable
     {
+        //[Inject]
+        //HubConnection HubConnection { get; set; }
         [Inject]
         public HttpInterceptorService Interceptor { get; set; }
         private List<Service> list = new List<Service>();
@@ -14,15 +16,20 @@ namespace WebSite.Pages
         protected override async Task OnInitializedAsync()
         {
             Console.WriteLine("Сервис на списке сервисов включёг");
-            Interceptor.RegisterEvents();
+            await Task.Run(() => Interceptor.RegisterEvents());
+            await LoadServices();
 
+            //HubConnection.On<Service>("ServiceAdded", async service =>
+            //{
+            //    await LoadServices();
+            //});
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
-                await LoadServices();
+                
             }
         }
 
@@ -45,6 +52,7 @@ namespace WebSite.Pages
         {
             Console.WriteLine("Сервис на списке сервисов отключён");
             Interceptor.DisposeEvent();
+            //HubConnection.Remove("ServiceAdded");
         }
     }
 }

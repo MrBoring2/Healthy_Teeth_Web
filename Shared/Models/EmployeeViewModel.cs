@@ -1,5 +1,4 @@
-﻿using Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -8,13 +7,8 @@ using System.Threading.Tasks;
 
 namespace Shared.Models
 {
-    public class EmployeeDTO
+    public class EmployeeViewModel
     {
-        public EmployeeDTO()
-        {
-            Account = new();
-        }
-
         public int Id { get; set; }
         [MaxLength(30)]
         [Required]
@@ -35,6 +29,9 @@ namespace Shared.Models
         public string Phone { get; set; }
         [Required]
         public int SpecializationId { get; set; }
-        public virtual AccountDTO? Account { get; set; }
+        public int RoleId { get; set; }
+        public string Password { get; set; }
+        public string Login { get; set; }
+        public bool ChangePassword { get; set; }
     }
 }

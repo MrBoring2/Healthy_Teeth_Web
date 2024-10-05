@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities
+namespace Shared.DTO
 {
-    public class Role
+    public class RoleDTO
     {
+        [Required]
         public int Id { get; set; }
-        [MaxLength(30)]
-        public required string Title { get; set; }
-        public virtual List<Account> Accounts { get; set; }
+        public string Title { get; set; }
     }
 }

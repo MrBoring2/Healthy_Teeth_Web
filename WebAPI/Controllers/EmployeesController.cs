@@ -10,6 +10,9 @@ using Data;
 using Shared.Models;
 using WebApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Shared.DTO;
+using AutoMapper;
 
 namespace WebAPI.Controllers
 {
@@ -19,18 +22,21 @@ namespace WebAPI.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly HealthyTeethDbContext _context;
+        private readonly IMapper _mapper;
 
-        public EmployeesController(HealthyTeethDbContext context)
+        public EmployeesController(HealthyTeethDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Employees
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployees()
         {
-            return await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).ToListAsync();
+            var employees =  await _context.Employees.Include(p => p.Account).ThenInclude(p => p!.Role).ToListAsync();
+            return _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
         }
 
         // GET: api/Employees/5
@@ -84,10 +90,10 @@ namespace WebAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(EmployeeDTO employee)
+        public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
             byte[] passwordHash, passwordSalt;
-            PasswordHasher.CreatePasswordHash(employee.Account.Password, out passwordHash, out passwordSalt);
+            PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
             var dbEmployee = new Employee()
             {
                 FirstName = employee.FirstName,
@@ -99,14 +105,15 @@ namespace WebAPI.Controllers
                 SpecializationId = employee.SpecializationId,
                 Account = new Account
                 {
-                    Login = employee.Account.Login,
+                    Login = employee.Login,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
-                    RoleId = employee.Account.RoleId
+                    RoleId = employee.RoleId
                 }
             };
             _context.Employees.Add(dbEmployee);
             await _context.SaveChangesAsync();
+
 
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }

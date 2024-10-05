@@ -38,10 +38,10 @@ namespace Data
         {
             const string connectionString = "Host=localhost;Port=5433;Database=healthy-teeth;Persist Security Info=True;User ID=postgres;Password=postgres";
 
-            optionsBuilder.UseLazyLoadingProxies()
-                          .LogTo(message => Debug.WriteLine(message))
-                          .EnableSensitiveDataLogging();
-            optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message));
+            //optionsBuilder.UseLazyLoadingProxies()
+            //              .LogTo(message => Debug.WriteLine(message))
+            //              .EnableSensitiveDataLogging();
+            //optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message));
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

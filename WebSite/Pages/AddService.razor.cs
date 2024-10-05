@@ -14,7 +14,7 @@ namespace WebSite.Pages
         [Inject]
         public HttpInterceptorService Interceptor { get; set; }
         protected string Title = "Add";
-        protected Service service = new();
+        protected ServiceViewModel service = new();
         protected override async Task OnParametersSetAsync()
         {
 

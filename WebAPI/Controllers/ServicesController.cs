@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Entities;
 using Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Shared.DTO;
+using AutoMapper;
+using Shared.Models;
 
 namespace WebAPI.Controllers
 {
@@ -15,19 +19,22 @@ namespace WebAPI.Controllers
     [ApiController]
     public class ServicesController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly HealthyTeethDbContext _context;
 
-        public ServicesController(HealthyTeethDbContext context)
+        public ServicesController(HealthyTeethDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Services
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Service>>> GetServices()
+        public async Task<IEnumerable<ServiceDTO>> GetServices()
         {
-            return await _context.Services.Include(p => p.Specialization).ToListAsync();
+            var services = await _context.Services.Include(p => p.Specialization).ToListAsync();
+            return _mapper.Map<IEnumerable<ServiceDTO>>(services);
         }
 
         // GET: api/Services/5
@@ -81,9 +88,15 @@ namespace WebAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Service>> PostService(Service service)
+        public async Task<ActionResult<Service>> PostService(ServiceViewModel service)
         {
-            _context.Services.Add(service);
+            var serviceDb = new Service
+            {
+                Price = service.Price,
+                SpecializationId = service.SpecializationId,
+                Title = service.Title
+            };
+            _context.Services.Add(serviceDb);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetService", new { id = service.Id }, service);

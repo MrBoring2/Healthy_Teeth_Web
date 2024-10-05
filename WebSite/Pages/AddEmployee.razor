@@ -62,23 +62,23 @@
     <div class="mb-3">
         <label for="Account.Login" class="form-label">Логин</label>
         <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Account.Login" />
+            <InputText class="form-control" @bind-Value="employee.Login" />
         </div>
-        <ValidationMessage For="@(() => employee.Account.Login)" />
+        <ValidationMessage For="@(() => employee.Login)" />
     </div>
     <div class="mb-3">
         <label for="Account.Passsword" class="form-label">Пароль</label>
         <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Account.Password" />
+            <InputText class="form-control" @bind-Value="employee.Password" />
         </div>
-        <ValidationMessage For="@(() => employee.Account.Password)" />
+        <ValidationMessage For="@(() => employee.Password)" />
     </div>
     <div class="mb-3">
         <label for="Account.RoleId" class="form-label">Роль</label>
         <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="employee.Account.RoleId" />
+            <InputNumber class="form-control" @bind-Value="employee.RoleId" />
         </div>
-        <ValidationMessage For="@(() => employee.Account.RoleId)" />
+        <ValidationMessage For="@(() => employee.RoleId)" />
     </div>
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Сохранить</button>
