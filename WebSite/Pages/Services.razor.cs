@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using WebSite.Services;
 
@@ -10,13 +11,16 @@ namespace WebSite.Pages
         //[Inject]
         //HubConnection HubConnection { get; set; }
         [Inject]
+        HubConnection HubConnection { get; set; }   
+        [Inject]
         public HttpInterceptorService Interceptor { get; set; }
         private List<Service> list = new List<Service>();
 
         protected override async Task OnInitializedAsync()
         {
+            Console.WriteLine("Статус хаба: " + HubConnection.State);
             Console.WriteLine("Сервис на списке сервисов включёг");
-            await Task.Run(() => Interceptor.RegisterEvents());
+            await RegisterEvents(); 
             await LoadServices();
 
             //HubConnection.On<Service>("ServiceAdded", async service =>
@@ -46,6 +50,17 @@ namespace WebSite.Pages
                 return;
             }
             StateHasChanged();
+        }
+        public async Task RegisterEvents()
+        {
+            await Task.Run(() => Interceptor.RegisterEvents());
+            await Task.Run(() => 
+            {
+                HubConnection.On<string>("ServiceAdded", async mes =>
+                {
+                    await LoadServices();
+                });
+            });
         }
 
         public void Dispose()

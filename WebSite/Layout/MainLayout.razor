@@ -27,9 +27,9 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        Console.WriteLine($"Токен: {auth}");
+        //Console.WriteLine($"Токен: {auth}");
         var user = await _authProvider.GetAuthenticationStateAsync();
-        Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
+        //Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
         if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
         {
             await _authProvider.GetAuthenticationStateAsync();

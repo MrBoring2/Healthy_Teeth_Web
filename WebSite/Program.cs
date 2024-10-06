@@ -12,6 +12,8 @@ using WebSite.Services;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Radzen;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -33,18 +35,29 @@ builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped<CustomStateProvider>();
 builder.Services.AddScoped<HttpInterceptorService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<CustomStateProvider>());
-//builder.Services.AddSingleton<HubConnection>(sp =>
-//{
-//    var navManager = sp.GetRequiredService<NavigationManager>();
-//    var authHttpService = sp.GetRequiredService<AuthHttpService>();
-//    return new HubConnectionBuilder()
-//    .WithUrl(navManager.ToAbsoluteUri("/healthy_teeth_hub"), options =>
-//    {
-//        options.AccessTokenProvider = async () => await Task.FromResult(await authHttpService.GetAccessTokenAsync());
-//    })
-//    .WithAutomaticReconnect()
-//    .Build();
+builder.Services.AddScoped(sp =>
+{
+    var navManager = sp.GetRequiredService<NavigationManager>();
+   // var a = sp.GetService<AuthHttpService>();
+    var authHttpService = sp.GetRequiredService<AuthHttpService>();
+    return new HubConnectionBuilder()
+    .WithUrl("https://localhost:8082/healthy_teeth_hub", async options =>
+    {
+        options.AccessTokenProvider = async () =>
+        {
+            Console.WriteLine(authHttpService is null);
 
-//});
+            var accessTokenResult = await authHttpService.GetAccessTokenAsync();
+
+            Console.WriteLine("ТОкен получен: " + accessTokenResult);
+            return accessTokenResult;
+           // return "";
+            
+        };
+    })
+    .WithAutomaticReconnect()
+    .Build();
+
+});
 builder.Services.AddAuthorizationCore();
 await builder.Build().RunAsync();

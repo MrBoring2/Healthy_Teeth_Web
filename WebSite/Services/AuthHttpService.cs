@@ -60,8 +60,8 @@ namespace WebSite.Services
             var token = await _localStorage.GetItemAsync<string>("accessToken");
             var refreshToken = await _localStorage.GetItemAsync<string>("refreshToken");
 
-            Console.WriteLine($"Токен: {token}");
-            Console.WriteLine($"Токен обновления: {refreshToken}");
+            //Console.WriteLine($"Токен: {token}");
+           // Console.WriteLine($"Токен обновления: {refreshToken}");
 
             var response = await _httpClient.PostAsJsonAsync("api/Authentication/RefreshToken",
                  new RefreshTokenRequest { Token = token, RefreshToken = refreshToken });

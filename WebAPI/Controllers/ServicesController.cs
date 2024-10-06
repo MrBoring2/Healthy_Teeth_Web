@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using Shared.DTO;
 using AutoMapper;
 using Shared.Models;
+using WebAPI.SignalR;
 
 namespace WebAPI.Controllers
 {
@@ -19,13 +20,15 @@ namespace WebAPI.Controllers
     [ApiController]
     public class ServicesController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly IMapper _mapper;
         private readonly HealthyTeethDbContext _context;
 
-        public ServicesController(HealthyTeethDbContext context, IMapper mapper)
+        public ServicesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
         {
             _context = context;
             _mapper = mapper;
+            _hubContext = hubContext;
         }
 
         // GET: api/Services
@@ -98,6 +101,8 @@ namespace WebAPI.Controllers
             };
             _context.Services.Add(serviceDb);
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group("Администратор").ServiceAdded("Успешно");
 
             return CreatedAtAction("GetService", new { id = service.Id }, service);
         }
