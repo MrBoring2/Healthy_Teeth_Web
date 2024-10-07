@@ -25,6 +25,7 @@ namespace Shared.DTO
         [MaxLength(30)]
         [Required]
         public string MiddleName { get; set; }
+        public string FullName { get; set; }
         [Required]
         [MaxLength(1)]
         public string Gender { get; set; }

@@ -47,8 +47,9 @@ namespace Data
         {
             modelBuilder.Entity<Account>(entity =>
             {
-                
+
                 entity.HasKey(p => p.EmployeeId);
+                entity.HasIndex(p => p.Login).IsUnique();
                 entity.HasOne(p => p.Employee)
                       .WithOne(p => p.Account)
                       .HasConstraintName("FK_Account_Employee")
@@ -64,7 +65,8 @@ namespace Data
             {
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.DateOfBirth).HasColumnType("date");
-
+                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""MiddleName"" || ' ' || ""LastName"")", stored: true);
+                entity.HasIndex(p => p.FullName);
                 entity.HasOne(p => p.Specialization)
                       .WithMany(p => p.Employees)
                       .HasConstraintName("FK_Employee_Specialization")
@@ -87,6 +89,7 @@ namespace Data
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.HasKey(p => p.Id);
+                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""MiddleName"" || ' ' || ""LastName"")", stored: true);
             });
 
             modelBuilder.Entity<Schedule>(entity =>
@@ -108,6 +111,7 @@ namespace Data
             {
                 entity.HasKey(p => p.Id);
 
+                entity.HasIndex(p => p.Title);
                 entity.HasOne(p => p.Specialization)
                       .WithMany(p => p.Services)
                       .HasConstraintName("FK_Service_Specialization")
@@ -118,6 +122,8 @@ namespace Data
             {
                 entity.HasKey(p => p.Id);
 
+                entity.HasIndex(p => p.VisitDate);
+                entity.HasIndex(p => p.VisirtTime);
                 entity.HasOne(p => p.Employee)
                       .WithMany(p => p.Visits)
                       .HasConstraintName("FK_Visit_Employee")

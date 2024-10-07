@@ -10,8 +10,9 @@ namespace Entities
     public class Weekday
     {
         public int Id { get; set; }
+        [Required]
         [MaxLength(30)]
-        public required string Title { get; set; }
+        public string Title { get; set; }
         public virtual List<Schedule>? Schedules { get; set; }
     }
 }
