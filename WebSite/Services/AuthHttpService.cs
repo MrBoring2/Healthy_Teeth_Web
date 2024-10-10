@@ -114,7 +114,7 @@ namespace WebSite.Services
                 result = await Task.Run(async () => JsonConvert.DeserializeObject<LogoutResponse>(await response.Content.ReadAsStringAsync()));
             }
             catch (Exception ex) { }
-            Console.WriteLine("Результат выхода: " + result.Success);
+            //Console.WriteLine("Результат выхода: " + result.Success);
 
             if (result != null && result.Success)
                 await SetAccessTokenAsync(null, null);

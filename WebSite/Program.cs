@@ -28,6 +28,11 @@ builder.Services.AddHttpClientInterceptor();
 //    options.BaseAddress = new Uri("https://localhost:8082");
 //});
 builder.Services.AddRadzenComponents();
+builder.Services.AddRadzenCookieThemeService(options =>
+{
+    options.Name = "MyApp";
+    options.Duration = TimeSpan.FromDays(7);
+});
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<RefreshTokenService>();
@@ -38,7 +43,7 @@ builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredServic
 builder.Services.AddScoped(sp =>
 {
     var navManager = sp.GetRequiredService<NavigationManager>();
-   // var a = sp.GetService<AuthHttpService>();
+    // var a = sp.GetService<AuthHttpService>();
     var authHttpService = sp.GetRequiredService<AuthHttpService>();
     return new HubConnectionBuilder()
     .WithUrl("https://localhost:8082/healthy_teeth_hub", async options =>
@@ -51,8 +56,8 @@ builder.Services.AddScoped(sp =>
 
             Console.WriteLine("ТОкен получен: " + accessTokenResult);
             return accessTokenResult;
-           // return "";
-            
+            // return "";
+
         };
     })
     .WithAutomaticReconnect()

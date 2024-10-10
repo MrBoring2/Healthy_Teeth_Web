@@ -57,16 +57,14 @@ namespace WebSite.Services
         {
             var absPath = e.Request.RequestUri.AbsolutePath;
 
-            Console.WriteLine("Путь: " + absPath);
+            //Console.WriteLine("Путь: " + absPath);
             if (absPath.Contains("Token"))
             {
-                Console.WriteLine("Хуйня не прошла!!!: " + absPath);
                 return;
             }
 
             else
             {
-                Console.WriteLine("Хуйня прошла!!!: " + absPath);
                 var token = await _refreshTokenService.TryRefreshToken();
                 if (!string.IsNullOrEmpty(token))
                 {

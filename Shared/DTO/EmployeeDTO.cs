@@ -29,6 +29,7 @@ namespace Shared.DTO
         [Required]
         [MaxLength(1)]
         public string Gender { get; set; }
+        public string GenderName => Gender == "М" ? "Мужской" : "Женский";
         [Required]
         public DateTime DateOfBirth { get; set; }
         [MaxLength(11)]

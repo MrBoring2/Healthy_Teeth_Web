@@ -21,7 +21,7 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("Сервис на добавлении сервисах включён");
+            //Console.WriteLine("Сервис на добавлении сервисах включён");
             Interceptor.RegisterEvents();
             //await JsRuntime.InvokeVoidAsync("alert", $"{a.User.Identity.IsAuthenticated.ToString()}"); // Alert
         }
@@ -48,7 +48,7 @@ namespace WebSite.Pages
         }
         public void Dispose()
         {
-            Console.WriteLine("Сервис на добавлении сервисах отключён");
+            //Console.WriteLine("Сервис на добавлении сервисах отключён");
             Interceptor.DisposeEvent();
         }
     }

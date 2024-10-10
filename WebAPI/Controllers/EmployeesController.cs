@@ -35,7 +35,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<IEnumerable<EmployeeDTO>> GetEmployees()
         {
-            var employees =  await _context.Employees.Include(p => p.Account).ThenInclude(p => p!.Role).ToListAsync();
+            var employees = await _context.Employees.Include(p => p.Specialization).Include(p => p.Account).ThenInclude(p => p!.Role).ToListAsync();
             return _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
         }
 

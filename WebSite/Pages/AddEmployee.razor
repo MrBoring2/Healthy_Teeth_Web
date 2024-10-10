@@ -13,7 +13,7 @@
     <div class="mb-3">
         <label for="FirstName" class="form-label">Имя</label>
         <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.FirstName" />
+            <RadzenTextBox class="form-control" @bind-Value="employee.FirstName" />
         </div>
         <ValidationMessage For="@(() => employee.FirstName)" />
     </div>

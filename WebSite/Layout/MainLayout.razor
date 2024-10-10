@@ -5,10 +5,42 @@
 @inject ILocalStorageService _localStorageService
 @inject CustomStateProvider _authProvider
 
+<RadzenComponents />
 
-<div class="page">
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+            <RadzenBreadCrumb>
+                <Template Context="item">
+                    <RadzenBadge Text="@item.Text" IsPill="true" />
+                </Template>
+                <ChildContent>
+                    <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
+                </ChildContent>
+            </RadzenBreadCrumb>
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+        <RadzenPanelMenu Style="width:245px">
+            <RadzenPanelMenuItem Click=OnItemClicked Text="Посещения" Path="visits" Icon="date_range" />
+            <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
+            <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />
+            <RadzenPanelMenuItem Text="Выход" Click="OnExitClicked" Icon="exit_to_app" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="content px-4">
+            @Body
+        </div>
+    </RadzenBody>
+    <RadzenFooter>
+        <RadzenText>© ООО «Здоровые зубы», 2024-@DateTime.Now.Date.Year</RadzenText>
+        </RadzenFooter>
+    </RadzenLayout>
+    @* <div class="page">
     <div class="sidebar">
-        <NavMenu />
+
     </div>
 
     <main>
@@ -16,23 +48,54 @@
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
 
-<RadzenComponents />
-@code {
+    </main>
+</div> *@
+    @code {
+
+    [Inject]
+    private CustomStateProvider AuthStatePrivder { get; set; }
+    [Inject]
+    public NavigationManager Nagivation { get; set; }
+    private string BroadcampTitle { get; set; }
+    private string Path { get; set; }
+    bool sidebar1Expanded = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Path = "/visits";
+        BroadcampTitle = "Посещения";
+        var user = await _authProvider.GetAuthenticationStateAsync();
+        if (!user.User.Identity.IsAuthenticated)
+        {
+            Nagivation.NavigateTo("/login");
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        //Console.WriteLine($"Токен: {auth}");
-        var user = await _authProvider.GetAuthenticationStateAsync();
-        //Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
-        if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
-        {
-            await _authProvider.GetAuthenticationStateAsync();
-        }
+        
+
+        // var auth = await _localStorageService.GetItemAsync<string>("accessToken");
+        // //Console.WriteLine($"Токен: {auth}");
+        
+        // //Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
+        // if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
+        // {
+        //     await _authProvider.GetAuthenticationStateAsync();
+        // }
+
+    }
+    private async Task OnItemClicked(MenuItemEventArgs args)
+    {
+        Path = args.Path;
+        BroadcampTitle = args.Text;
+        StateHasChanged();
+    }
+    private async Task OnExitClicked()
+    {
+        var result = await AuthStatePrivder.LogoutAsync();
+        if (result.Success)
+            Nagivation.NavigateTo("/login");
     }
 }

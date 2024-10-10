@@ -1,0 +1,78 @@
+﻿@page "/employees"
+@using Entities
+@using Newtonsoft.Json
+@using Shared.DTO
+@using WebSite.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApiService _apiService
+
+<PageTitle>Сотрудники</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H2">Список сотрудников</RadzenText>
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenPanel AllowCollapse="true" class="rz-my-10 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
+                <HeaderTemplate>
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="account_box" class="rz-me-1" /><b>Отображение данных</b>
+                    </RadzenText>
+                </HeaderTemplate>
+                <ChildContent>
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
+                        <RadzenFormField Text="Поиск по ФИО">
+                            <RadzenTextBox Placeholder="Введите ФИО сотрудника" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Роль">
+                            <RadzenTextBox Placeholder="Роль" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Роль">
+                            <RadzenTextBox Placeholder="Специлазиация" />
+                        </RadzenFormField>
+                    </RadzenStack>
+                </ChildContent>
+            </RadzenPanel>
+            <RadzenDataGrid @ref="grid" Count="@count" Data="@list" @bind-Value=@selectedEmployees SelectionMode="DataGridSelectionMode.Single" KeyProperty="Id" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
+                            PagerHorizontalAlign="HorizontalAlign.Center" FilterMode="FilterMode.Advanced" AllowSorting="true">
+                <Columns>
+                    <RadzenDataGridColumn Property="EmployeeDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn Property="EmployeeDTO.FullName" Title="ФИО" Width="250px" />
+                    <RadzenDataGridColumn Property="EmployeeDTO.Specialization.Title" Title="Специализация" Width="150px" />
+                    <RadzenDataGridColumn Property="EmployeeDTO.Account.Role.Title" Title="Роль" Width="100px" />
+                    <RadzenDataGridColumn Property="EmployeeDTO.Account.Login" Title="Логин" Width="100px" />
+                    <RadzenDataGridColumn Property="EmployeeDTO.GenderName" Title="Пол" Width="100px" />
+                </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
+            </RadzenDataGrid>
+            @*  <table class="table">
+            <thead>
+            <tr>
+            <th>Date</th>
+            <th>Temp. (C)</th>
+            <th>Temp. (F)</th>
+            <th>Summary</th>
+            </tr>
+            </thead>
+            <tbody>
+            @if (list.Count() > 0)
+            {
+            @foreach (var employee in list)
+            {
+            <tr>
+            <td>@employee.FirstName</td>
+            <td>@employee.LastName</td>
+            <td>@employee.Account?.Role?.Title</td>
+            </tr>
+            }
+            }
+            </tbody>
+            </table> *@
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+

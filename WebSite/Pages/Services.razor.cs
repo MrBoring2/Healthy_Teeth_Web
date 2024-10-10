@@ -18,8 +18,8 @@ namespace WebSite.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("Статус хаба: " + HubConnection.State);
-            Console.WriteLine("Сервис на списке сервисов включёг");
+            //Console.WriteLine("Статус хаба: " + HubConnection.State);
+           // Console.WriteLine("Сервис на списке сервисов включёг");
             await RegisterEvents(); 
             await LoadServices();
 
@@ -65,7 +65,7 @@ namespace WebSite.Pages
 
         public void Dispose()
         {
-            Console.WriteLine("Сервис на списке сервисов отключён");
+            //Console.WriteLine("Сервис на списке сервисов отключён");
             Interceptor.DisposeEvent();
             //HubConnection.Remove("ServiceAdded");
         }

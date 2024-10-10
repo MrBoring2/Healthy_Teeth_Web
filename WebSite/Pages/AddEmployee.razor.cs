@@ -22,7 +22,7 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("Сервис на добавлении сотруднриках включён");
+            //Console.WriteLine("Сервис на добавлении сотруднриках включён");
             Interceptor.RegisterEvents();
             //var a = await _authStateProvider.GetAuthenticationStateAsync();
             //Console.WriteLine(a.User.Identity.IsAuthenticated.ToString());
@@ -53,7 +53,7 @@ namespace WebSite.Pages
         }
         public void Dispose()
         {
-            Console.WriteLine("Сервис на добавлении сотруднриках отключён");
+            //Console.WriteLine("Сервис на добавлении сотруднриках отключён");
             Interceptor.DisposeEvent();
         }
     }

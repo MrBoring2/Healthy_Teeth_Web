@@ -21,10 +21,12 @@ namespace WebAPI.Controllers
     {
         private readonly TokenService _tokenService;
         private readonly HealthyTeethDbContext _context;
-        public AuthenticationController(HealthyTeethDbContext context, TokenService tokenService)
+        private readonly ILogger _logger;
+        public AuthenticationController(HealthyTeethDbContext context, TokenService tokenService, ILogger<AuthenticationController> logger)
         {
             _context = context;
             _tokenService = tokenService;
+            _logger = logger;
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginModel model)
@@ -36,6 +38,7 @@ namespace WebAPI.Controllers
                 Console.WriteLine($"Ялвяется ли null: {user.Id} {user.FirstName} {user.Account.Login} {user.Account.Role.Title}");
                 if (user == null || !PasswordHasher.VerifyPasswordHash(model.Password, user.Account.PasswordHash, user.Account.PasswordSalt))
                 {
+                    _logger.LogInformation("Провальаня попытка входа под логином {0}", model.Login);
                     return BadRequest("Неверное имя пользователя или пароль");
                 }
                 else
@@ -77,6 +80,7 @@ namespace WebAPI.Controllers
                 Console.WriteLine("Пользователь: " + login);
                 if (string.IsNullOrEmpty(login))
                 {
+                    _logger.LogWarning("Истёк токен обновления пользователя {0}", login);
                     return Unauthorized("Недействительный токен обновления");
                 }
 
@@ -85,16 +89,20 @@ namespace WebAPI.Controllers
                 var userClaims = ClaimsExtentions.BuildClaimsForUser(user);
                 if (user == null)
                 {
+                    _logger.LogWarning("Недействительный пользователь {0}", login);
                     return Unauthorized("Недействительный пользователь");
                 }
 
                 var token = JwtTokenGenerator.GenerateToken(userClaims).access_token;
                 var newRefreshToken = GenerateRefreshToken();
                 await _tokenService.SaveRefreshToken(user.Id, newRefreshToken);
+                _logger.LogInformation("Обновление токена пользователя {0}", login);
+
                 return Ok(new AuthResponse { Token = token, RefreshToken = newRefreshToken });
             }
             catch (Exception ex)
             {
+                _logger.LogInformation("Ошибка сервера {0}", ex.Message);
                 return StatusCode(500, $"Ошибка сервера: {ex.Message}");
             }
         }

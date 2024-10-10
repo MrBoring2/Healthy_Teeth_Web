@@ -24,7 +24,7 @@ namespace WebSite.Providers
             {
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
-            Console.WriteLine($"Ещё токен: {Utils.Utils.ParseClaimsFromJwt(accessToken)}");
+            //Console.WriteLine($"Ещё токен: {Utils.Utils.ParseClaimsFromJwt(accessToken)}");
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", accessToken);
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(Utils.Utils.ParseClaimsFromJwt(accessToken), "jwt")));
         }
