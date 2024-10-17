@@ -17,7 +17,8 @@ namespace Entities
         public byte[] PasswordHash { get; set; }
         [Required]
         public byte[] PasswordSalt { get; set; }
-        public required int RoleId { get; set; }
+        [Required]
+        public int RoleId { get; set; }
         public virtual Role? Role { get; set; }
         public virtual Employee? Employee { get; set; }
         public virtual EmployeeRefreshToken EmployeeRefreshToken { get; set; }

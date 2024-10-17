@@ -13,7 +13,7 @@
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
-            <RadzenPanel AllowCollapse="true" class="rz-my-10 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
+            <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
                 <HeaderTemplate>
                     <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
                         <RadzenIcon Icon="account_box" class="rz-me-1" /><b>Отображение данных</b>
@@ -33,9 +33,20 @@
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>
+            @*  <RadzenStack JustifyContent="JustifyContent.End" Orientation="Orientation.Horizontal" class="rz-mb-5">
+            <RadzenButton Text="Добавить" Icon="add_circle" ButtonStyle="ButtonStyle.Info" Style="width:120px;" />
+            <RadzenButton Text="Изменить" Icon="edit" ButtonStyle="ButtonStyle.Primary" Style="width:120px;" />
+            <RadzenButton Text="Удалить" Icon="remove_circle" ButtonStyle="ButtonStyle.Danger" Style="width:120px;" />
+            </RadzenStack> *@
             <RadzenDataGrid @ref="grid" Count="@count" Data="@list" @bind-Value=@selectedEmployees SelectionMode="DataGridSelectionMode.Single" KeyProperty="Id" IsLoading="@isLoading"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
-                            PagerHorizontalAlign="HorizontalAlign.Center" FilterMode="FilterMode.Advanced" AllowSorting="true">
+                            PagerHorizontalAlign="HorizontalAlign.Center" FilterMode="FilterMode.Advanced" AllowSorting="true" TItem="EmployeeDTO">
+                <HeaderTemplate>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow"/>
+                </HeaderTemplate>
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
                 <Columns>
                     <RadzenDataGridColumn Property="EmployeeDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
                     <RadzenDataGridColumn Property="EmployeeDTO.FullName" Title="ФИО" Width="250px" />
@@ -43,6 +54,14 @@
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Role.Title" Title="Роль" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Login" Title="Логин" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.GenderName" Title="Пол" Width="100px" />
+                    <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="60px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                        <Template Context="employee">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
+                            </RadzenButton>
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
                 <LoadingTemplate>
                     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />

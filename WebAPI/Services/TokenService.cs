@@ -1,15 +1,19 @@
 ﻿using Data;
+using Entities;
 using Microsoft.EntityFrameworkCore;
+using WebAPI.Controllers;
 
 namespace WebAPI.Services
 {
     public class TokenService
     {
         public readonly HealthyTeethDbContext _context;
+        private readonly ILogger<TokenService> _logger;
 
-        public TokenService(HealthyTeethDbContext context)
+        public TokenService(HealthyTeethDbContext context, ILogger<TokenService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task SaveRefreshToken(int userId, string token)
@@ -31,14 +35,25 @@ namespace WebAPI.Services
 
         public async Task<bool> RevokeRefreshToken(string refreshToken)
         {
-            var tokenRecord = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.EmployeeRefreshToken.RefreshToken.Equals(refreshToken));
-            if (tokenRecord != null)
+            Account tokenRecord = new Account();
+            try
             {
-                tokenRecord.EmployeeRefreshToken.RefreshToken = null;
-                tokenRecord.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
-                await _context.SaveChangesAsync();
-                return true;
+                tokenRecord = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.EmployeeRefreshToken.RefreshToken.Equals(refreshToken));
+                if (tokenRecord != null)
+                {
+
+                    //tokenRecord.EmployeeRefreshToken.RefreshToken = null;
+                    //tokenRecord.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
+                    _context.EmployeeRefreshTokens.Remove(tokenRecord.EmployeeRefreshToken);
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
             }
+            catch (Exception ex) 
+            {
+                _logger.LogError("У пользователя {0} нет токена обновления", tokenRecord.Login);
+            }
+            
 
             return false;
         }

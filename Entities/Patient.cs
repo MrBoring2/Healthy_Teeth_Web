@@ -21,7 +21,7 @@ namespace Entities
         public  string MiddleName { get; set; }
         public string FullName { get; private set; }
         [Required]
-        [MaxLength(1)]
+        [MaxLength(10)]
         public  string Gender { get; set; }
         [Required]
         public DateTime DateOfBirth { get; set; }

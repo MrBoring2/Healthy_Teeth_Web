@@ -65,4 +65,5 @@ builder.Services.AddScoped(sp =>
 
 });
 builder.Services.AddAuthorizationCore();
-await builder.Build().RunAsync();
+var a = builder.Build();
+await a.RunAsync();

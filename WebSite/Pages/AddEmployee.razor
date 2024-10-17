@@ -1,90 +1,59 @@
 ﻿@using Entities
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
 @using Shared.Models
 @using WebSite.Providers
 @using WebSite.Services
-@page "/"
+@* @page "/" *@
 @inject NavigationManager NavigationManager
 @inject CustomStateProvider _authStateProvider
 @inject ApiService _apiService
-<h1>@Title User</h1>
+<h1>Карточка сотрудника</h1>
 <hr />
-<EditForm Model="@employee" OnValidSubmit="SaveUser">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label for="FirstName" class="form-label">Имя</label>
-        <div class="col-md-4">
-            <RadzenTextBox class="form-control" @bind-Value="employee.FirstName" />
-        </div>
-        <ValidationMessage For="@(() => employee.FirstName)" />
-    </div>
-    <div class="mb-3">
-        <label for="MiddleName" class="form-label">Фамилия</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.MiddleName" />
-        </div>
-        <ValidationMessage For="@(() => employee.MiddleName)" />
-    </div>
-    <div class="mb-3">
-        <label for="LastName" class="form-label">Отчество</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.LastName" />
-        </div>
-        <ValidationMessage For="@(() => employee.LastName)" />
-    </div>
-    <div class="mb-3">
-        <label for="Gender" class="form-label">Пол</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Gender" />
-        </div>
-        <ValidationMessage For="@(() => employee.Gender)" />
-    </div>
-    <div class="mb-3">
-        <label for="Cellnumber" class="form-label">DateOfBirth</label>
-        <div class="col-md-4">
-            <InputDate class="form-control" @bind-Value="employee.DateOfBirth" />
-        </div>
-        <ValidationMessage For="@(() => employee.DateOfBirth)" />
-    </div>
-    <div class="mb-3">
-        <label for="Phone" class="form-label">Пол</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Phone" />
-        </div>
-        <ValidationMessage For="@(() => employee.Phone)" />
-    </div>
-    <div class="mb-3">
-        <label for="SpecializationId" class="form-label">Специализация</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="employee.SpecializationId" />
-        </div>
-        <ValidationMessage For="@(() => employee.SpecializationId)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.Login" class="form-label">Логин</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Login" />
-        </div>
-        <ValidationMessage For="@(() => employee.Login)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.Passsword" class="form-label">Пароль</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Password" />
-        </div>
-        <ValidationMessage For="@(() => employee.Password)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.RoleId" class="form-label">Роль</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="employee.RoleId" />
-        </div>
-        <ValidationMessage For="@(() => employee.RoleId)" />
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
-    </div>
-</EditForm>
-@code{
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <EditForm Model="@employee" Context="editContext" OnValidSubmit="SaveUser">
+                <RadzenStack>
+                    <RadzenFormField Text="Фамилия">
+                        <RadzenTextBox Placeholder="Фамилия" @bind-Value="@employee.FirstName"/>
+                    </RadzenFormField>
+                    <RadzenFormField Text="Имя">
+                        <RadzenTextBox Placeholder="Имя" @bind-Value="@employee.MiddleName" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Отчество">
+                        <RadzenTextBox Placeholder="Отчество" @bind-Value="@employee.LastName" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Пол">
+                        <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@employee.Gender />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Дата рождения">
+                        <RadzenDatePicker Placeholder="Дата рождения" TValue="DateTime" @bind-Value="@employee.DateOfBirth" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Телефон">
+                        <RadzenTextBox Placeholder="Телефон" @bind-Value="@employee.Phone" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Роль">
+                        <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" @bind-Value=@employee.RoleId TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)"  />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Специализация">
+                        <RadzenDropDown Placeholder="Выберите специализацию" Data="@Specializations" @bind-Value=@employee.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Логин">
+                        <RadzenTextBox Placeholder="Логин" @bind-Value="@employee.Login" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Пароль">
+                        <RadzenTextBox Placeholder="Пароль" @bind-Value="@employee.Password" />
+                    </RadzenFormField>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" Click="@SaveUser" />
+                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </EditForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+@code {
 
 }

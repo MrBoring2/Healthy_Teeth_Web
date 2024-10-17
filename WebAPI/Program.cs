@@ -104,7 +104,6 @@ app.UseCors("_myAllowSpecificOrigins");
 app.UseResponseCompression();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 app.MapHub<MainHub>("/healthy_teeth_hub");
 

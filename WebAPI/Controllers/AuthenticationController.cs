@@ -35,7 +35,6 @@ namespace WebAPI.Controllers
             {
                 ClaimsIdentity userClaims = null;
                 var user = await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).FirstOrDefaultAsync(x => x.Account.Login == model.Login);
-                Console.WriteLine($"Ялвяется ли null: {user.Id} {user.FirstName} {user.Account.Login} {user.Account.Role.Title}");
                 if (user == null || !PasswordHasher.VerifyPasswordHash(model.Password, user.Account.PasswordHash, user.Account.PasswordSalt))
                 {
                     _logger.LogInformation("Провальаня попытка входа под логином {0}", model.Login);
@@ -75,9 +74,7 @@ namespace WebAPI.Controllers
 
             try
             {
-                Console.WriteLine("Тоен обновления: " + request.RefreshToken);
                 var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken);
-                Console.WriteLine("Пользователь: " + login);
                 if (string.IsNullOrEmpty(login))
                 {
                     _logger.LogWarning("Истёк токен обновления пользователя {0}", login);
@@ -139,8 +136,10 @@ namespace WebAPI.Controllers
             Console.WriteLine($"Выход: {logout.Login}");
             var errorMessage = "";
             var acc = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
-            acc.EmployeeRefreshToken.RefreshToken = null;
-            acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
+
+            _context.EmployeeRefreshTokens.Remove(acc.EmployeeRefreshToken);
+           // acc.EmployeeRefreshToken.RefreshToken = null;
+           // acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
             await _context.SaveChangesAsync();
             //await _signInManager.SignOutAsync();
 

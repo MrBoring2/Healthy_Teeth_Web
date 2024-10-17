@@ -92,6 +92,7 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
+            Console.WriteLine(employee.Login);
             byte[] passwordHash, passwordSalt;
             PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
             var dbEmployee = new Employee()
