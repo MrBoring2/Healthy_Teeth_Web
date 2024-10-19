@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Shared.DTO;
 using AutoMapper;
+using WebAPI.SignalR;
 
 namespace WebAPI.Controllers
 {
@@ -21,13 +22,15 @@ namespace WebAPI.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly HealthyTeethDbContext _context;
         private readonly IMapper _mapper;
 
-        public EmployeesController(HealthyTeethDbContext context, IMapper mapper)
+        public EmployeesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
         {
             _context = context;
             _mapper = mapper;
+            _hubContext = hubContext;
         }
 
         // GET: api/Employees
@@ -35,7 +38,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<IEnumerable<EmployeeDTO>> GetEmployees()
         {
-            var employees = await _context.Employees.Include(p => p.Specialization).Include(p => p.Account).ThenInclude(p => p!.Role).ToListAsync();
+            var employees = await _context.Employees.Include(p => p.Specialization).Include(p => p.Account).ThenInclude(p => p!.Role).ToListAsync();          
             return _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
         }
 
@@ -92,7 +95,6 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
-            Console.WriteLine(employee.Login);
             byte[] passwordHash, passwordSalt;
             PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
             var dbEmployee = new Employee()
@@ -112,9 +114,10 @@ namespace WebAPI.Controllers
                     RoleId = employee.RoleId
                 }
             };
-            _context.Employees.Add(dbEmployee);
+            _context.Employees.Add(dbEmployee);        
             await _context.SaveChangesAsync();
 
+            await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
 
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }

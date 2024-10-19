@@ -4,7 +4,6 @@
 @using Shared.DTO
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
-@inject ApiService _apiService
 
 <PageTitle>Сотрудники</PageTitle>
 
@@ -25,24 +24,19 @@
                             <RadzenTextBox Placeholder="Введите ФИО сотрудника" />
                         </RadzenFormField>
                         <RadzenFormField Text="Роль">
-                            <RadzenTextBox Placeholder="Роль" />
+                            <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" TValue="RoleDTO" TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)" />
                         </RadzenFormField>
-                        <RadzenFormField Text="Роль">
-                            <RadzenTextBox Placeholder="Специлазиация" />
+                        <RadzenFormField Text="Специализация">
+                            <RadzenDropDown Placeholder="Выберите специализацию" TValue="SpecializationDTO" Data="@Specializations" TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
                         </RadzenFormField>
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>
-            @*  <RadzenStack JustifyContent="JustifyContent.End" Orientation="Orientation.Horizontal" class="rz-mb-5">
-            <RadzenButton Text="Добавить" Icon="add_circle" ButtonStyle="ButtonStyle.Info" Style="width:120px;" />
-            <RadzenButton Text="Изменить" Icon="edit" ButtonStyle="ButtonStyle.Primary" Style="width:120px;" />
-            <RadzenButton Text="Удалить" Icon="remove_circle" ButtonStyle="ButtonStyle.Danger" Style="width:120px;" />
-            </RadzenStack> *@
             <RadzenDataGrid @ref="grid" Count="@count" Data="@list" @bind-Value=@selectedEmployees SelectionMode="DataGridSelectionMode.Single" KeyProperty="Id" IsLoading="@isLoading"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
                             PagerHorizontalAlign="HorizontalAlign.Center" FilterMode="FilterMode.Advanced" AllowSorting="true" TItem="EmployeeDTO">
                 <HeaderTemplate>
-                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow"/>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow" />
                 </HeaderTemplate>
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
@@ -67,29 +61,6 @@
                     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
                 </LoadingTemplate>
             </RadzenDataGrid>
-            @*  <table class="table">
-            <thead>
-            <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
-            </tr>
-            </thead>
-            <tbody>
-            @if (list.Count() > 0)
-            {
-            @foreach (var employee in list)
-            {
-            <tr>
-            <td>@employee.FirstName</td>
-            <td>@employee.LastName</td>
-            <td>@employee.Account?.Role?.Title</td>
-            </tr>
-            }
-            }
-            </tbody>
-            </table> *@
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>

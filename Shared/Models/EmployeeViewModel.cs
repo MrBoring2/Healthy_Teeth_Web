@@ -20,8 +20,7 @@ namespace Shared.Models
         [Required]
         public string MiddleName { get; set; }
         [Required]
-        [MaxLength(1)]
-        public string Gender { get; set; }
+        public int Gender { get; set; }
         [Required]
         public DateTime DateOfBirth { get; set; }
         [MaxLength(11)]

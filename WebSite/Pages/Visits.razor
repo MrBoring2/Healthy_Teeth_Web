@@ -1,14 +1,22 @@
 ﻿@page "/visits"
-<RadzenScheduler @ref=@Scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
-                 TextProperty="Text" SelectedIndex="1"
-                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
-                 AppointmentMove=@OnAppointmentMove TodayText="Сегодня" Culture="System.Globalization.CultureInfo.CurrentCulture">
-    <ChildContent>
-        <RadzenDayView Text="День" TimeFormat="HH:mm" />
-        <RadzenWeekView Text="Неделя" TimeFormat="HH:mm" />
-    </ChildContent>
-     
-</RadzenScheduler>
+
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenScheduler @ref=@Scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
+                             TextProperty="Text" SelectedIndex="1"
+                             SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
+                             AppointmentMove=@OnAppointmentMove TodayText="Сегодня" Culture="System.Globalization.CultureInfo.CurrentCulture">
+                <ChildContent>
+                    <RadzenDayView Text="День" TimeFormat="HH:mm" />
+                    <RadzenWeekView Text="Неделя" TimeFormat="HH:mm" />
+                </ChildContent>
+
+            </RadzenScheduler>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
 
 
 @code {
@@ -18,7 +26,7 @@
         // StateHasChanged();
     }
 
-    public RadzenScheduler<Appointment> Scheduler{ get; set; }
+    public RadzenScheduler<Appointment> Scheduler { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

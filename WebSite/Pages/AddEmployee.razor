@@ -2,12 +2,11 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Shared.DTO
 @using Shared.Models
+@using WebSite.Models
 @using WebSite.Providers
 @using WebSite.Services
 @* @page "/" *@
 @inject NavigationManager NavigationManager
-@inject CustomStateProvider _authStateProvider
-@inject ApiService _apiService
 <h1>Карточка сотрудника</h1>
 <hr />
 <CascadingAuthenticationState>
@@ -25,7 +24,7 @@
                         <RadzenTextBox Placeholder="Отчество" @bind-Value="@employee.LastName" />
                     </RadzenFormField>
                     <RadzenFormField Text="Пол">
-                        <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@employee.Gender />
+                        <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@employee.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
                     </RadzenFormField>
                     <RadzenFormField Text="Дата рождения">
                         <RadzenDatePicker Placeholder="Дата рождения" TValue="DateTime" @bind-Value="@employee.DateOfBirth" />

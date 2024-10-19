@@ -8,19 +8,25 @@ using System.Collections.Generic;
 using System.Net.Http.Json;
 using WebSite.Models;
 using WebSite.Services;
+using WebSite.Services.ApiServices;
 
 namespace WebSite.Pages
 {
-    public partial class AddEmployee : IDisposable
+    public partial class AddEmployee
     {
         [Parameter]
         public int EmployeeId { get; set; }
         [Inject]
-        public DialogService DialogService { get; set; }
+        private IApiServiceFactory ApiServiceFactory { get; set; }
         [Inject]
-        public HttpInterceptorService Interceptor { get; set; }
+        public DialogService DialogService { get; set; }
+
+        private IApiService RoleApiService { get; set; }
+        private IApiService SpecificaionApiService { get; set; }
+        private IApiService EmployeeApiService { get; set; }
+
         private List<RoleDTO> Roles { get; set; }
-        private List<string> Genders = new List<string>() { "Мужчина", "Женщина" };
+        private List<Gender> Genders;
         private List<SpecializationDTO> Specializations { get; set; }
         protected string Title = "Add";
         protected EmployeeViewModel employee = new();
@@ -32,30 +38,40 @@ namespace WebSite.Pages
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
 
-           
+
         }
 
         protected override async Task OnInitializedAsync()
         {
-            await Task.WhenAll(Task.Run(() => Interceptor.RegisterEvents()), LoadRoles());
-          
-           // await LoadRoles();
-           // await LoadSpecializations();
+
+            RoleApiService = ApiServiceFactory.GetRoleApiService();
+            SpecificaionApiService = ApiServiceFactory.GetSpecificationApiService();
+            EmployeeApiService = ApiServiceFactory.GetEmployeeApiService();
+
+            Genders = new List<Gender>
+            {
+                new Gender{ Id = 0, Title = "Мужской"},
+                new Gender{ Id = 1, Title = "Женский"}
+            };
+            // await Task.WhenAll(Task.Run(() => Interceptor.RegisterEvents()), LoadRoles());
+
+            await LoadRoles();
+            await LoadSpecializations();
             //Interceptor.RegisterEvents();
 
         }
-  
+
         protected async Task SaveUser()
         {
             ResponseModel response;
 
             if (employee.Id != 0)
             {
-                response = await _apiService.PutAsync("api/employees", employee.Id, employee);
+                response = await EmployeeApiService.PutAsync(employee.Id, employee);
             }
             else
             {
-                response = await _apiService.PostAsync("api/employees", employee);
+                response = await EmployeeApiService.PostAsync(employee);
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.Created)
@@ -65,11 +81,11 @@ namespace WebSite.Pages
         }
         private async Task LoadRoles()
         {
-            var response = await _apiService.GetAsync("api/roles");
+            var response = await RoleApiService.GetAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Roles = JsonConvert.DeserializeObject<List<RoleDTO>>(response.Content);
-                await LoadSpecializations();
+                // await LoadSpecializations();
 
             }
             else
@@ -81,7 +97,7 @@ namespace WebSite.Pages
 
         private async Task LoadSpecializations()
         {
-            var response = await _apiService.GetAsync("api/specializations");
+            var response = await SpecificaionApiService.GetAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Specializations = JsonConvert.DeserializeObject<List<SpecializationDTO>>(response.Content);
@@ -92,10 +108,6 @@ namespace WebSite.Pages
         {
             NavigationManager.NavigateTo("/");
         }
-        public void Dispose()
-        {
-            //Console.WriteLine("Сервис на добавлении сотруднриках отключён");
-            Interceptor.DisposeEvent();
-        }
+ 
     }
 }

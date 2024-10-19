@@ -5,7 +5,7 @@
 @using WebSite.Providers
 @using WebSite.Services
 <head>
-    <RadzenTheme Theme="standart"/>
+    <RadzenTheme Theme="standart" />
 </head>
 <RadzenTheme Theme="standart" />
 
@@ -23,55 +23,21 @@
 </Router>
 
 @code {
-        [Inject]
-        CookieThemeService CookieThemeService { get; set; }
-        [Inject]
-        private HubConnection HubConnection { get; set; }
-        [Inject]
-        private ThemeService ThemeService { get; set; }
-    // [Inject]
-    // public AuthHttpService AccessTokenProvider { get; set; }
-    // [Inject]
-    // HubConnection HubConnection { get; set; }
+    [Inject]
+    CookieThemeService CookieThemeService { get; set; }
+    [Inject]
+    private HubConnection HubConnection { get; set; }
+    [Inject]
+    private ThemeService ThemeService { get; set; }
+
     private CancellationTokenSource cts = new CancellationTokenSource();
     private async Task OnNavigateAsync(NavigationContext args)
     {
-        // var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        // var user = await _authProvider.GetAuthenticationStateAsync();
-        // Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
-        // if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
-        // {
-        //     await _authProvider.GetAuthenticationStateAsync();
-        // }
+
     }
 
     protected override async Task OnInitializedAsync()
     {
-        //await  _hub.StartAsync();
-
-        // HubConnection = new HubConnectionBuilder()
-        // .WithUrl("https://localhost:8082/chat", async options =>
-        // {
-        //     options.AccessTokenProvider = async () =>
-        // {
-        //     var accessTokenResult = await AccessTokenProvider.GetAccessTokenAsync();
-        //     Console.WriteLine("ТОкен получен: " + accessTokenResult);
-        //     return accessTokenResult;
-        // };
-        // })
-        // .WithAutomaticReconnect()
-        // .Build();
-        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        var a = Themes.Free;
-        foreach (var item in a)
-        {
-            Console.WriteLine(item.Value);
-        }
-
-
-        ThemeService.SetTheme("standart");
-        // Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        Console.WriteLine(ThemeService.Theme);
         await ConnectWithRetrySync(cts.Token);
 
         HubConnection.Closed += error =>
@@ -106,10 +72,4 @@
             }
         }
     }
-    // public async ValueTask DisposeAsync()
-    // {
-    //     cts.Cancel();
-    //     cts.Dispose();
-    //     await HubConnection.DisposeAsync();
-    // }
 }

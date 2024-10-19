@@ -27,9 +27,8 @@ namespace Shared.DTO
         public string MiddleName { get; set; }
         public string FullName { get; set; }
         [Required]
-        [MaxLength(1)]
-        public string Gender { get; set; }
-        public string GenderName => Gender == "М" ? "Мужской" : "Женский";
+        public int Gender { get; set; }
+        public string GenderName => Gender == 0 ? "Мужчина" : "Женщина";
         [Required]
         public DateTime DateOfBirth { get; set; }
         [MaxLength(11)]

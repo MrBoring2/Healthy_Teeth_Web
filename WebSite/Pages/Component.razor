@@ -45,42 +45,12 @@
 
     async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
     {
-        // console.Log($"SlotSelect: Start={args.Start} End={args.End}");
-
-        // if (args.View.Text != "Year")
-        // {
-        //     Appointment data = await DialogService.OpenAsync<AddAppointmentPage>("Add Appointment",
-        //         new Dictionary<string, object> { { "Start", args.Start }, { "End", args.End } });
-
-        //     if (data != null)
-        //     {
-        //         appointments.Add(data);
-        //         // Either call the Reload method or reassign the Data property of the Scheduler
-        //         await scheduler.Reload();
-        //     }
-        // }
+        
     }
 
     async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
     {
-        // console.Log($"AppointmentSelect: Appointment={args.Data.Text}");
-
-        // var copy = new Appointment
-        //     {
-        //         Start = args.Data.Start,
-        //         End = args.Data.End,
-        //         Text = args.Data.Text
-        //     };
-
-        // var data = await DialogService.OpenAsync<EditAppointmentPage>("Edit Appointment", new Dictionary<string, object> { { "Appointment", copy } });
-
-        // if (data != null)
-        // {
-        //     // Update the appointment
-        //     args.Data.Start = data.Start;
-        //     args.Data.End = data.End;
-        //     args.Data.Text = data.Text;
-        // }
+       
 
         await scheduler.Reload();
     }

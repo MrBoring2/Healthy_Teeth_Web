@@ -3,7 +3,7 @@
 @using Newtonsoft.Json
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
-@inject ApiService _apiService
+@using WebSite.Services.ApiServices
 
 <PageTitle>Services</PageTitle>
 
@@ -20,7 +20,7 @@ else
     <CascadingAuthenticationState>
         <AuthorizeView>
             <Authorized>
-                <table class="table">
+               @*  <table class="table">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -42,7 +42,7 @@ else
                             }
                         }
                     </tbody>
-                </table>
+                </table> *@
             </Authorized>
         </AuthorizeView>
     </CascadingAuthenticationState>

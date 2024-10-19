@@ -7,12 +7,10 @@ using WebSite.Services;
 
 namespace WebSite.Pages
 {
-    public partial class AddService : IDisposable
+    public partial class AddService
     {
         [Parameter]
         public int userId { get; set; }
-        [Inject]
-        public HttpInterceptorService Interceptor { get; set; }
         protected string Title = "Add";
         protected ServiceViewModel service = new();
         protected override async Task OnParametersSetAsync()
@@ -21,20 +19,18 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
-            //Console.WriteLine("Сервис на добавлении сервисах включён");
-            Interceptor.RegisterEvents();
-            //await JsRuntime.InvokeVoidAsync("alert", $"{a.User.Identity.IsAuthenticated.ToString()}"); // Alert
+            
         }
         protected async Task SaveUser()
         {
             ResponseModel response;
             if (service.Id != 0)
             {
-                response = await _apiService.PutAsync("api/Services", service.Id, service);
+                response = await _apiService.PutAsync(service.Id, service);
             }
             else
             {
-                response = await _apiService.PostAsync("api/Services", service);
+                response = await _apiService.PostAsync( service);
             }
             if (response.StatusCode == System.Net.HttpStatusCode.Created)
             {
@@ -46,10 +42,6 @@ namespace WebSite.Pages
         {
             NavigationManager.NavigateTo("/");
         }
-        public void Dispose()
-        {
-            //Console.WriteLine("Сервис на добавлении сервисах отключён");
-            Interceptor.DisposeEvent();
-        }
+ 
     }
 }

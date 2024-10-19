@@ -1,11 +1,12 @@
 ﻿@using Entities
 @using Shared.Models
 @using WebSite.Providers
-@using WebSite.Services
+@using WebSite.Services;
+@using WebSite.Services.ApiServices
 @page "/add-service"
 @inject NavigationManager NavigationManager
 @inject CustomStateProvider _authStateProvider
-@inject ApiService _apiService
+@inject EmployeeApiService _apiService
 <h1>@Title User</h1>
 <hr />
 <EditForm Model="@service" OnValidSubmit="SaveUser">
