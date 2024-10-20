@@ -10,6 +10,7 @@ using Entities;
 using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 using Shared.DTO;
+using Shared.Models;
 
 namespace WebAPI.Controllers
 {
@@ -29,10 +30,10 @@ namespace WebAPI.Controllers
         // GET: api/Roles
         [Authorize]
         [HttpGet]
-        public async Task<IEnumerable<RoleDTO>> GetRoles()
+        public async Task<DataServiceResult<RoleDTO>> GetRoles()
         {
             var roles =  await _context.Roles.ToListAsync();
-            return _mapper.Map<IEnumerable<RoleDTO>>(roles);
+            return new(_mapper.Map<IEnumerable<RoleDTO>>(roles), roles.Count);
         }
 
         // GET: api/Roles/5

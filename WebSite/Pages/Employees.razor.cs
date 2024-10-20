@@ -19,40 +19,79 @@ namespace WebSite.Pages
         private HubConnection HubConnection { get; set; }
         [Inject]
         private DialogService DialogService { get; set; }
-        private IApiService EmployeeApiService { get; set; }
-        private IApiService RoleApiService { get; set; }
-        private IApiService SpecificationApiService { get; set; }
+        private IApiService<EmployeeDTO> EmployeeApiService { get; set; }
+        private IApiService<RoleDTO> RoleApiService { get; set; }
+        private IApiService<SpecializationDTO> SpecalizationApiService { get; set; }
         private ODataEnumerable<EmployeeDTO> list;
         private IList<EmployeeDTO> selectedEmployees;
         private RadzenDataGrid<EmployeeDTO> grid;
-        private IList<RoleDTO> selectedRoles;
         private List<RoleDTO> Roles { get; set; }
         private List<SpecializationDTO> Specializations { get; set; }
+        private string search;
+        private string Search
+        {
+            get => search;
+            set
+            {
+                search = value;
+                LoadData(lastArgs);
+            }
+        }
+        private List<RoleDTO> selectedRoles;
+        private List<RoleDTO> SelectedRoles
+        {
+            get => selectedRoles;
+            set
+            {
+
+                selectedRoles = value;
+                LoadData(lastArgs);
+            }
+        }
+        private List<SpecializationDTO> selectedSpecializations;
+        private List<SpecializationDTO> SelectedSpecializations
+        {
+            get => selectedSpecializations;
+            set
+            {
+
+                selectedSpecializations = value;
+                LoadData(lastArgs);
+            }
+        }
         private bool isLoading;
         private LoadDataArgs lastArgs;
         private int count;
+        private string[] FilterNames { get; set; } = new string[]
+            {
+                "search",
+                "orderBy",
+                "rolesIds",
+                "specializationIds",
+            };
 
         protected override async Task OnInitializedAsync()
         {
+            search = string.Empty;
+
+            count = 10;
             EmployeeApiService = ApiServiceFatory.GetEmployeeApiService();
             RoleApiService = ApiServiceFatory.GetRoleApiService();
-            SpecificationApiService = ApiServiceFatory.GetSpecificationApiService();
+            SpecalizationApiService = ApiServiceFatory.GetSpecializationApiService();
+
             HubConnection.On<string>("EmployeeAdded", async mes =>
             {
                 await LoadData(lastArgs);
             });
-         
+            await LoadRoles();
+            await LoadSpecializations();
         }
-
-
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
-                await LoadRoles();
-                
-                await LoadSpecializations();
+
             }
         }
 
@@ -60,44 +99,52 @@ namespace WebSite.Pages
         {
             lastArgs = args;
             isLoading = true;
-            var filterNames = new string[]
+
+            var queryParameters = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(Search))
             {
-                "search",
-                "orderBy",
-                ""
-            };
-            var response = await EmployeeApiService.GetAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                list = JsonConvert.DeserializeObject<ODataEnumerable<EmployeeDTO>>(response.Content);
-                count = 10;
+                queryParameters.Add("search", Search);
             }
-            else
+            if (SelectedRoles != null && SelectedRoles.Count > 0)
             {
-                return;
+                queryParameters.Add("rolesIds", string.Join(',', SelectedRoles.Select(p => p.Id)));
             }
+            if (SelectedSpecializations != null && SelectedSpecializations.Count > 0)
+            {
+                queryParameters.Add("spesializationIds", string.Join(',', SelectedSpecializations.Select(p => p.Id)));
+            }
+            if (!string.IsNullOrEmpty(args.OrderBy))
+            {
+                queryParameters.Add("orderby", args.OrderBy);
+            }
+            queryParameters.Add("top", args.Top.ToString());
+            queryParameters.Add("skip", args.Skip.ToString());
+            var response = await EmployeeApiService.GetAsync(queryParameters);
+            list = response.Result.AsODataEnumerable();
+            count = response.Count;
+            Console.WriteLine(count);
             isLoading = false;
             StateHasChanged();
         }
         private async Task LoadRoles()
         {
             var response = await RoleApiService.GetAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            Console.WriteLine(response.Count);
+            if (response.Result != null)
             {
-                Roles = JsonConvert.DeserializeObject<List<RoleDTO>>(response.Content);
-            }
-            else
-            {
-                return;
+                Roles = response.Result.ToList();
+                selectedRoles = Roles;
             }
         }
 
         private async Task LoadSpecializations()
         {
-            var response = await SpecificationApiService.GetAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            var response = await SpecalizationApiService.GetAsync();
+            if (response.Result != null)
             {
-                Specializations = JsonConvert.DeserializeObject<List<SpecializationDTO>>(response.Content);
+                Specializations = response.Result.ToList();
+                selectedSpecializations = Specializations;
             }
         }
         public async Task OpenEmployeeWindow()
@@ -114,6 +161,6 @@ namespace WebSite.Pages
                });
 
         }
-       
+
     }
 }

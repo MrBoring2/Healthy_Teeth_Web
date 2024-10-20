@@ -21,9 +21,9 @@ namespace WebSite.Pages
         [Inject]
         public DialogService DialogService { get; set; }
 
-        private IApiService RoleApiService { get; set; }
-        private IApiService SpecificaionApiService { get; set; }
-        private IApiService EmployeeApiService { get; set; }
+        private IApiService<RoleDTO> RoleApiService { get; set; }
+        private IApiService<SpecializationDTO> SpecializaionApiService { get; set; }
+        private IApiService<EmployeeDTO> EmployeeApiService { get; set; }
 
         private List<RoleDTO> Roles { get; set; }
         private List<Gender> Genders;
@@ -45,7 +45,7 @@ namespace WebSite.Pages
         {
 
             RoleApiService = ApiServiceFactory.GetRoleApiService();
-            SpecificaionApiService = ApiServiceFactory.GetSpecificationApiService();
+            SpecializaionApiService = ApiServiceFactory.GetSpecializationApiService();
             EmployeeApiService = ApiServiceFactory.GetEmployeeApiService();
 
             Genders = new List<Gender>
@@ -63,30 +63,31 @@ namespace WebSite.Pages
 
         protected async Task SaveUser()
         {
-            ResponseModel response;
-
+            ResponseModel<string> responseModel;
             if (employee.Id != 0)
             {
-                response = await EmployeeApiService.PutAsync(employee.Id, employee);
+                responseModel = await EmployeeApiService.PutAsync(employee.Id, employee);
             }
             else
             {
-                response = await EmployeeApiService.PostAsync(employee);
+                responseModel = await EmployeeApiService.PostAsync(employee);
             }
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Created)
+            if (responseModel.StatusCode == System.Net.HttpStatusCode.Created)
             {
                 DialogService.Close(true);
+            }
+            else
+            {
+
             }
         }
         private async Task LoadRoles()
         {
             var response = await RoleApiService.GetAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.Result != null)
             {
-                Roles = JsonConvert.DeserializeObject<List<RoleDTO>>(response.Content);
-                // await LoadSpecializations();
-
+                Roles = response.Result.ToList();
             }
             else
             {
@@ -97,10 +98,10 @@ namespace WebSite.Pages
 
         private async Task LoadSpecializations()
         {
-            var response = await SpecificaionApiService.GetAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            var response = await SpecializaionApiService.GetAsync();
+            if (response.Result != null)
             {
-                Specializations = JsonConvert.DeserializeObject<List<SpecializationDTO>>(response.Content);
+                Specializations = response.Result.ToList();
             }
         }
 

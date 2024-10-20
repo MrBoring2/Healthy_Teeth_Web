@@ -10,6 +10,7 @@ using Entities;
 using Microsoft.AspNetCore.Authorization;
 using Shared.DTO;
 using AutoMapper;
+using Shared.Models;
 
 namespace WebAPI.Controllers
 {
@@ -23,16 +24,16 @@ namespace WebAPI.Controllers
         public SpecializationsController(HealthyTeethDbContext context, IMapper mapper)
         {
             _context = context;
-            _mapper = mapper;   
+            _mapper = mapper;
         }
 
         // GET: api/Specializations
         [Authorize]
         [HttpGet]
-        public async Task<IEnumerable<SpecializationDTO>> GetSpecializations()
+        public async Task<DataServiceResult<SpecializationDTO>> GetSpecializations()
         {
             var specializations = await _context.Specializations.ToListAsync();
-            return _mapper.Map<IEnumerable<SpecializationDTO>>(specializations);
+            return new(_mapper.Map<IEnumerable<SpecializationDTO>>(specializations), specializations.Count);
         }
 
         // GET: api/Specializations/5

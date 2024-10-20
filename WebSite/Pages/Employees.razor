@@ -21,20 +21,22 @@
                 <ChildContent>
                     <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
                         <RadzenFormField Text="Поиск по ФИО">
-                            <RadzenTextBox Placeholder="Введите ФИО сотрудника" />
+                            <RadzenTextBox Placeholder="Введите ФИО сотрудника" @bind-Value="@Search" />
                         </RadzenFormField>
-                        <RadzenFormField Text="Роль">
-                            <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" TValue="RoleDTO" TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)" />
+                        <RadzenFormField Text="Роли">
+                            <RadzenDropDown @bind-Value=@SelectedRoles Data=@Roles TextProperty="@nameof(RoleDTO.Title)" Name="DropDownMultipleChips"
+                                            Multiple=true AllowClear=true Placeholder="Выберите роли" Chips=true Style="width: 100%; max-width: 400px;"  SelectedItemsText="элементов выбрано" />
                         </RadzenFormField>
-                        <RadzenFormField Text="Специализация">
-                            <RadzenDropDown Placeholder="Выберите специализацию" TValue="SpecializationDTO" Data="@Specializations" TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                        <RadzenFormField Text="Специализации">
+                            <RadzenDropDown @bind-Value=@SelectedSpecializations Data=@Specializations TextProperty="@nameof(SpecializationDTO.Title)" Name="DropDownMultipleChips"
+                                            Multiple=true AllowClear=true Placeholder="Выберите специализации" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано"  />
                         </RadzenFormField>
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>
-            <RadzenDataGrid @ref="grid" Count="@count" Data="@list" @bind-Value=@selectedEmployees SelectionMode="DataGridSelectionMode.Single" KeyProperty="Id" IsLoading="@isLoading"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
-                            PagerHorizontalAlign="HorizontalAlign.Center" FilterMode="FilterMode.Advanced" AllowSorting="true" TItem="EmployeeDTO">
+            <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@selectedEmployees SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData 
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="EmployeeDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
                 <HeaderTemplate>
                     <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow" />
                 </HeaderTemplate>
@@ -48,7 +50,7 @@
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Role.Title" Title="Роль" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Login" Title="Логин" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.GenderName" Title="Пол" Width="100px" />
-                    <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="60px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                    <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                         <Template Context="employee">
                             <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" @onclick:stopPropagation="true">
                             </RadzenButton>

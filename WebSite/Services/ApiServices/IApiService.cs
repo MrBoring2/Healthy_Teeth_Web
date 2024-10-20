@@ -1,14 +1,15 @@
-﻿using WebSite.Models;
+﻿using Shared.Models;
+using WebSite.Models;
 
 namespace WebSite.Services.ApiServices
 {
-    public interface IApiService
+    public interface IApiService<T> where T : class
     {
-        Task<ResponseModel> GetAsync();
-        Task<ResponseModel> GetAsync(string[] filterNames, string[] filterValues);
-        Task<ResponseModel> GetAsync(int id);
-        Task<ResponseModel> PostAsync(object data);
-        Task<ResponseModel> PutAsync(int id, object data);
+        Task<DataServiceResult<T>> GetAsync();
+        Task<DataServiceResult<T>> GetAsync(Dictionary<string, string> queryParameters);
+        Task<ResponseModel<T>> GetAsync(int id);
+        Task<ResponseModel<string>> PostAsync(object data);
+        Task<ResponseModel<string>> PutAsync(int id, object data);
 
     }
 }

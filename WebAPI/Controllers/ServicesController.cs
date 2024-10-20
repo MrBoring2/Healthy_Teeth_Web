@@ -34,10 +34,10 @@ namespace WebAPI.Controllers
         // GET: api/Services
         [Authorize]
         [HttpGet]
-        public async Task<IEnumerable<ServiceDTO>> GetServices()
+        public async Task<DataServiceResult<ServiceDTO>> GetServices()
         {
             var services = await _context.Services.Include(p => p.Specialization).ToListAsync();
-            return _mapper.Map<IEnumerable<ServiceDTO>>(services);
+            return new (_mapper.Map<IEnumerable<ServiceDTO>>(services), services.Count);
         }
 
         // GET: api/Services/5

@@ -1,11 +1,13 @@
-﻿namespace WebSite.Services.ApiServices
+﻿using Shared.DTO;
+
+namespace WebSite.Services.ApiServices
 {
     public interface IApiServiceFactory
     {
-        IApiService GetEmployeeApiService();
-        IApiService GetServiceApiService();
-        IApiService GetRoleApiService();
-        IApiService GetSpecificationApiService();
+        IApiService<EmployeeDTO> GetEmployeeApiService();
+        IApiService<ServiceDTO> GetServiceApiService();
+        IApiService<RoleDTO> GetRoleApiService();
+        IApiService<SpecializationDTO> GetSpecializationApiService();
     }
     public class ApiServiceFactory : IApiServiceFactory
     {
@@ -16,20 +18,20 @@
             _httpClient = httpClient;
         }
 
-        public IApiService GetEmployeeApiService()
+        public IApiService<EmployeeDTO> GetEmployeeApiService()
         {
             return new EmployeeApiService(_httpClient);
 
         }
-        public IApiService GetServiceApiService()
+        public IApiService<ServiceDTO> GetServiceApiService()
         {
             return new ServiceApiService(_httpClient);
         }
-        public IApiService GetRoleApiService()
+        public IApiService<RoleDTO> GetRoleApiService()
         {
             return new RoleApiService(_httpClient);
         }
-        public IApiService GetSpecificationApiService()
+        public IApiService<SpecializationDTO> GetSpecializationApiService()
         {
             return new SpecializationApiService(_httpClient);
         }

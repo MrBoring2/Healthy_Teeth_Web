@@ -23,7 +23,7 @@ namespace WebSite.Pages
         }
         protected async Task SaveUser()
         {
-            ResponseModel response;
+            ResponseModel<string> response;
             if (service.Id != 0)
             {
                 response = await _apiService.PutAsync(service.Id, service);

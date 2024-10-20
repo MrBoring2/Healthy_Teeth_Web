@@ -1,11 +1,14 @@
 ﻿using Newtonsoft.Json;
+using Radzen;
+using Shared.DTO;
+using Shared.Models;
 using System.Net.Mime;
 using System.Text;
 using WebSite.Models;
 
 namespace WebSite.Services.ApiServices
 {
-    public class ServiceApiService : IApiService
+    public class ServiceApiService : IApiService<ServiceDTO>
     {
         private readonly HttpClient _httpClient;
 
@@ -14,70 +17,47 @@ namespace WebSite.Services.ApiServices
             _httpClient = httpClient;
         }
 
-        public async Task<ResponseModel> GetAsync()
+        public async Task<DataServiceResult<ServiceDTO>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/services");
             try
             {
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return new ResponseModel(response.StatusCode, responseObjects);
+                return JsonConvert.DeserializeObject<DataServiceResult<ServiceDTO>>(responseObjects);
             }
             catch (Exception ex)
             {
-                return new ResponseModel(response.StatusCode, null);
+                return new DataServiceResult<ServiceDTO>(null, 0);
             }
         }
 
-        public Task<ResponseModel> GetAsync(int id)
+        public Task<ResponseModel<ServiceDTO>> GetAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ResponseModel> GetAsync(string[] filterNames, string[] filterValues)
+        public Task<DataServiceResult<ServiceDTO>> GetAsync(Dictionary<string, string> queryParameters)
         {
-            HttpResponseMessage response = new HttpResponseMessage();
-            try
-            {
-                var builder = new UriBuilder();
-                for (int i = 0; i < filterNames.Length; i++)
-                {
-                    if (i == filterNames.Length - 1)
-                    {
-                        builder.Query += $"{filterNames[i]}={filterValues[i]}";
-                    }
-                    else
-                    {
-                        builder.Query += $"{filterNames[i]}={filterValues[i]}&";
-                    }
-
-                }
-                response = await _httpClient.GetAsync(builder.ToString());
-                var responseObjects = await response.Content.ReadAsStringAsync();
-                return new ResponseModel(response.StatusCode, responseObjects);
-            }
-            catch (Exception ex)
-            {
-                return new ResponseModel(response.StatusCode, null);
-            }
+            throw new NotImplementedException();
         }
 
-        public async Task<ResponseModel> PostAsync(object data)
+        public async Task<ResponseModel<string>> PostAsync(object data)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             try
             {
                 response = await _httpClient.PostAsync("api/services", new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, MediaTypeNames.Application.Json));
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return new ResponseModel(response.StatusCode, responseObjects);
+                return new ResponseModel<string>(response.StatusCode, responseObjects);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Произошла ошибка: " + ex.Message);
-                return new ResponseModel(response.StatusCode, ex.Message);
+                return new ResponseModel<string>(response.StatusCode, ex.Message);
             }
         }
 
-        public Task<ResponseModel> PutAsync(int id, object data)
+        public Task<ResponseModel<string>> PutAsync(int id, object data)
         {
             throw new NotImplementedException();
         }
