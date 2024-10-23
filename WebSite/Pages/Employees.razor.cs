@@ -23,7 +23,7 @@ namespace WebSite.Pages
         private IApiService<RoleDTO> RoleApiService { get; set; }
         private IApiService<SpecializationDTO> SpecalizationApiService { get; set; }
         private ODataEnumerable<EmployeeDTO> list;
-        private IList<EmployeeDTO> selectedEmployees;
+        private IList<EmployeeDTO> SelectedEmployees { get; set; }
         private RadzenDataGrid<EmployeeDTO> grid;
         private List<RoleDTO> Roles { get; set; }
         private List<SpecializationDTO> Specializations { get; set; }
@@ -188,6 +188,20 @@ namespace WebSite.Pages
                    Height = "720px"
                });
 
+        }
+
+        public async Task OpenEditEmployeeWindow(int id)
+        {
+            await DialogService.OpenAsync<AddEmployee>($"Редактирование",
+             new Dictionary<string, object>() { { "EmployeeId", id } },
+             new DialogOptions()
+             {
+                 Resizable = true,
+                 Draggable = true,
+
+                 Width = "500px",
+                 Height = "720px"
+             });
         }
 
     }

@@ -24,7 +24,7 @@ namespace Entities
         [MaxLength(10)]
         public  string Gender { get; set; }
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         [Required]
         [MaxLength(40)]
         public string City { get; set; }

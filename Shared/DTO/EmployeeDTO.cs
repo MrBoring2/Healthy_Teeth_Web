@@ -30,12 +30,13 @@ namespace Shared.DTO
         public int Gender { get; set; }
         public string GenderName => Gender == 0 ? "Мужчина" : "Женщина";
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         [MaxLength(11)]
         [Required]
         public string Phone { get; set; }
         [Required]
         public int SpecializationId { get; set; }
+        public List<ScheduleDTO> Schedules {  get; set; } 
         public SpecializationDTO Specialization { get; set; }
         public AccountDTO Account { get; set; }
     }

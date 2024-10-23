@@ -3,6 +3,7 @@ using System;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataMigration.Migrations
 {
     [DbContext(typeof(HealthyTeethDbContext))]
-    partial class HealthyTeethDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241023143212_change_connections")]
+    partial class change_connections
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,7 @@ namespace DataMigration.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("DateOfBirth")
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("date");
 
                     b.Property<string>("FirstName")
@@ -139,8 +142,8 @@ namespace DataMigration.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -225,18 +228,20 @@ namespace DataMigration.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
-                    b.Property<TimeOnly>("TimeFrom")
-                        .HasColumnType("time without time zone");
+                    b.Property<TimeSpan>("TimeFrom")
+                        .HasColumnType("interval");
 
-                    b.Property<TimeOnly>("TimeTo")
-                        .HasColumnType("time without time zone");
+                    b.Property<TimeSpan>("TimeTo")
+                        .HasColumnType("interval");
 
-                    b.Property<int>("Weekday")
+                    b.Property<int>("WeekdayId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("WeekdayId");
 
                     b.ToTable("Schedules");
                 });
@@ -372,12 +377,30 @@ namespace DataMigration.Migrations
                     b.ToTable("VisitStatuses");
                 });
 
+            modelBuilder.Entity("Entities.Weekday", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Weekdays");
+                });
+
             modelBuilder.Entity("Entities.Account", b =>
                 {
                     b.HasOne("Entities.Employee", "Employee")
                         .WithOne("Account")
                         .HasForeignKey("Entities.Account", "EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Account_Employee");
 
@@ -426,7 +449,16 @@ namespace DataMigration.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Schedule_Employee");
 
+                    b.HasOne("Entities.Weekday", "Weekday")
+                        .WithMany("Schedules")
+                        .HasForeignKey("WeekdayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Schedule_Weekday");
+
                     b.Navigation("Employee");
+
+                    b.Navigation("Weekday");
                 });
 
             modelBuilder.Entity("Entities.Service", b =>
@@ -446,13 +478,13 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Service", "Service")
                         .WithMany("ServiceToVisits")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Entities.Visit", "Visit")
                         .WithMany("ServiceToVisits")
                         .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Service");
@@ -472,7 +504,7 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Patient", "Patient")
                         .WithMany("Visits")
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired()
                         .HasConstraintName("FK_Visit_Patient");
 
@@ -534,6 +566,11 @@ namespace DataMigration.Migrations
             modelBuilder.Entity("Entities.VisitStatus", b =>
                 {
                     b.Navigation("Visits");
+                });
+
+            modelBuilder.Entity("Entities.Weekday", b =>
+                {
+                    b.Navigation("Schedules");
                 });
 #pragma warning restore 612, 618
         }

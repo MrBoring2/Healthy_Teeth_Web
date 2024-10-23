@@ -11,16 +11,15 @@ namespace Entities
     {
         public int Id { get; set; }
         [Required]
-        public TimeSpan TimeFrom { get; set; }
+        public TimeOnly TimeFrom { get; set; }
         [Required]
-        public TimeSpan TimeTo { get; set; }
+        public TimeOnly TimeTo { get; set; }
         [Required]
         public int Cabinet { get; set; }
         [Required]
-        public int WeekdayId { get; set; }
+        public int Weekday { get; set; }
         [Required]
         public int EmployeeId { get; set; }
-        public virtual Weekday? Weekday { get; set; }
         public virtual Employee? Employee { get; set; }
 
     }

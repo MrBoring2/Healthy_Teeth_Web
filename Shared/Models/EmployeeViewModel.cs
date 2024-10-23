@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared.DTO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,10 +23,11 @@ namespace Shared.Models
         [Required]
         public int Gender { get; set; }
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         [MaxLength(11)]
         [Required]
         public string Phone { get; set; }
+        public List<ScheduleDTO> Schedules { get; set; }
         [Required]
         public int SpecializationId { get; set; }
         public int RoleId { get; set; }

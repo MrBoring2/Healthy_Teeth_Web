@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using WebSite.Models
+<h1>Карточка сотрудника</h1>
+<hr />
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <EditForm Model="@schedule" Context="editContext">
+                <RadzenStack>
+                    <RadzenFormField Text="День недели">
+                        <RadzenDropDown Placeholder="Выберите день недели" Data="@Weekdays" @bind-Value=@schedule.Weekday TextProperty="@nameof(Weekday.WeekdayTitle)" ValueProperty="@nameof(Weekday.WeekdayNumber)" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Конец смены">
+                        <RadzenDatePicker @bind-Value=@schedule.TimeFrom ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly1" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Конец смены">
+                        <RadzenDatePicker @bind-Value=@schedule.TimeTo ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly2" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Кабинет">
+                        <RadzenNumeric @bind-Value=@schedule.Cabinet />
+                    </RadzenFormField>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" Click="@SaveSchedule" />
+                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </EditForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

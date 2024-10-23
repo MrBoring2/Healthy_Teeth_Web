@@ -23,13 +23,13 @@ namespace Entities
         [Required]
         public int Gender { get; set; }
         [Required]
-        public  DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         [MaxLength(11)]
         [Required]
         public string Phone { get; set; }
         [Required]
         public int SpecializationId { get; set; }
-        public virtual Account? Account { get; set; }    
+        public virtual Account? Account { get; set; }
         public virtual Specialization? Specialization { get; set; }
         public virtual List<Visit>? Visits { get; set; }
         public virtual List<Schedule>? Schedules { get; set; }

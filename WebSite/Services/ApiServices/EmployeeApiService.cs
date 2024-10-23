@@ -33,9 +33,25 @@ namespace WebSite.Services.ApiServices
         }
 
 
-        public Task<ResponseModel<EmployeeDTO>> GetAsync(int id)
+        public async Task<ResponseModel<EmployeeDTO>> GetAsync(int id)
         {
-            throw new NotImplementedException();
+            var response = await _httpClient.GetAsync($"api/employees/{id}");
+            try
+            {
+                var responseObjects = await response.Content.ReadAsStringAsync();
+
+                if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return new ResponseModel<EmployeeDTO>(System.Net.HttpStatusCode.BadRequest, null, responseObjects);
+                }
+
+                return new(response.StatusCode, JsonConvert.DeserializeObject<EmployeeDTO>(responseObjects));
+            }
+            catch (Exception ex)
+            {
+                var responseObjects = await response.Content.ReadAsStringAsync();
+                return new ResponseModel<EmployeeDTO>(System.Net.HttpStatusCode.BadRequest, null, ex.Message);
+            }
         }
 
         public async Task<ResponseModel<DataServiceResult<EmployeeDTO>>> GetAsync(Dictionary<string, string> queryParameters)
@@ -72,9 +88,21 @@ namespace WebSite.Services.ApiServices
             }
         }
 
-        public Task<ResponseModel<string>> PutAsync(int id, object data)
+        public async Task<ResponseModel<string>> PutAsync(int id, object data)
         {
-            throw new NotImplementedException();
+
+            HttpResponseMessage response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.PutAsync($"api/employees/{id}", new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, MediaTypeNames.Application.Json));
+                var responseObject = await response.Content.ReadAsStringAsync();
+                return new ResponseModel<string>(response.StatusCode, responseObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Произошла ошибка: " + ex.Message);
+                return new ResponseModel<string>(response.StatusCode, ex.Message);
+            }
         }
     }
 }

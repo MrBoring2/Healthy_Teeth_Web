@@ -19,6 +19,8 @@ using System.Collections;
 using WebAPI.Filters;
 using WebAPI.Helpers;
 using Serilog;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace WebAPI.Controllers
 {
@@ -50,6 +52,7 @@ namespace WebAPI.Controllers
             var orderBySplit = orderBy?.Split(' ');
             var roleIds = rolesIds?.Split(',').Select(int.Parse);
             var spesIds = spesializationIds?.Split(',').Select(int.Parse);
+
             EmployeeFilter filter;
             try
             {
@@ -59,32 +62,35 @@ namespace WebAPI.Controllers
             {
                 return BadRequest("Неккоректно заданные параметры");
             }
-
-            var employees = _context.Employees
-                                                        .Include(p => p.Specialization)
-                                                        .Include(p => p.Account)
-                                                        .ThenInclude(p => p.Role)
-                                                        .AsSplitQuery()
-                                                        .AsNoTracking()
-                                                        .Where(filter.FilterExpression)
-                                                        .AsEnumerable();
-                                                        
-            if (string.IsNullOrEmpty(filter.OrderBy))
+            if (orderBySplit == null)
             {
-                employees = employees.OrderBy(p => p.Id);
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Employee> employees;
+
+            if (filter.OrderDirection == "asc")
+            {
+                employees = _context.Employees
+                                  .Include(p => p.Specialization)
+                                  .Include(p => p.Account)
+                                  .ThenInclude(p => p.Role)
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
             }
             else
             {
-                if (filter.OrderDirection == "asc")
-                {
-                    employees = employees.OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy));
-                }
-                else
-                {
-                    employees = employees.OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy));
-                }                
+                employees = _context.Employees
+                                 .Include(p => p.Specialization)
+                                 .Include(p => p.Account)
+                                 .ThenInclude(p => p.Role)
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
             }
-          
+
             var count = employees.Count();
 
             employees = employees.Skip(filter.Skip).Take(filter.Top);
@@ -95,30 +101,48 @@ namespace WebAPI.Controllers
         // GET: api/Employees/5
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        public async Task<ActionResult<EmployeeDTO>> GetEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees.Include(p => p.Account).Include(p => p.Schedules).FirstOrDefaultAsync(p => p.Id == id);
 
             if (employee == null)
             {
                 return NotFound();
             }
 
-            return employee;
+            return Ok(_mapper.Map<EmployeeDTO>(employee));
         }
 
         // PUT: api/Employees/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
+        public async Task<IActionResult> PutEmployee(int id, EmployeeViewModel employee)
         {
             if (id != employee.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(employee).State = EntityState.Modified;
+            var employeeDb = await _context.Employees.Include(p => p.Account).Include(p => p.Schedules).FirstOrDefaultAsync(p => p.Id == id);
+            employeeDb.FirstName = employee.FirstName;
+            employeeDb.LastName = employee.LastName;
+            employeeDb.MiddleName = employee.MiddleName;
+            employeeDb.DateOfBirth = employee.DateOfBirth;
+            employeeDb.Gender = employee.Gender;
+            employeeDb.Phone = employee.Phone;
+            employeeDb.SpecializationId = employee.SpecializationId;
+            employeeDb.Account.Login = employee.Login;
+            employeeDb.Account.RoleId = employee.RoleId;
+            Console.WriteLine(employee.Schedules.Count);
+            employeeDb.Schedules = _mapper.Map<IEnumerable<Schedule>>(employee.Schedules).ToList();
+            if (employee.ChangePassword)
+            {
+                byte[] passwordHash, passwordSalt;
+                PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
+                employeeDb.Account.PasswordHash = passwordHash;
+                employeeDb.Account.PasswordSalt = passwordSalt;
+            }
 
             try
             {
@@ -135,8 +159,8 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
+            await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
+            return Ok();
         }
 
         // POST: api/Employees
@@ -182,8 +206,15 @@ namespace WebAPI.Controllers
                 return NotFound();
             }
 
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Не удалось удалить пользователя: " + ex.Message);
+            }
 
             return NoContent();
         }

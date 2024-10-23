@@ -15,7 +15,7 @@
             <EditForm Model="@employee" Context="editContext" OnValidSubmit="SaveUser">
                 <RadzenStack>
                     <RadzenFormField Text="Фамилия">
-                        <RadzenTextBox Placeholder="Фамилия" @bind-Value="@employee.FirstName"/>
+                        <RadzenTextBox Placeholder="Фамилия" @bind-Value="@employee.FirstName" />
                     </RadzenFormField>
                     <RadzenFormField Text="Имя">
                         <RadzenTextBox Placeholder="Имя" @bind-Value="@employee.MiddleName" />
@@ -27,13 +27,13 @@
                         <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@employee.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
                     </RadzenFormField>
                     <RadzenFormField Text="Дата рождения">
-                        <RadzenDatePicker Placeholder="Дата рождения" TValue="DateTime" @bind-Value="@employee.DateOfBirth" />
+                        <RadzenDatePicker Placeholder="Дата рождения" DateFormat="dd.MM.yyyy" @bind-Value="@employee.DateOfBirth" />
                     </RadzenFormField>
                     <RadzenFormField Text="Телефон">
                         <RadzenTextBox Placeholder="Телефон" @bind-Value="@employee.Phone" />
                     </RadzenFormField>
                     <RadzenFormField Text="Роль">
-                        <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" @bind-Value=@employee.RoleId TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)"  />
+                        <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" @bind-Value=@employee.RoleId TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)" />
                     </RadzenFormField>
                     <RadzenFormField Text="Специализация">
                         <RadzenDropDown Placeholder="Выберите специализацию" Data="@Specializations" @bind-Value=@employee.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
@@ -41,9 +41,41 @@
                     <RadzenFormField Text="Логин">
                         <RadzenTextBox Placeholder="Логин" @bind-Value="@employee.Login" />
                     </RadzenFormField>
-                    <RadzenFormField Text="Пароль">
-                        <RadzenTextBox Placeholder="Пароль" @bind-Value="@employee.Password" />
-                    </RadzenFormField>
+                    @if (employee.Id != 0)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenCheckBox @bind-Value=@employee.ChangePassword Name="ChangePassword" />
+                            <RadzenLabel Text="Изменить пароль" Component="ChangePassword" class="rz-ms-2" />
+                        </RadzenStack>
+                    }
+                    @if (employee.Id == 0 || (employee.Id != 0 && employee.ChangePassword))
+                    {
+                        <RadzenFormField Text="Пароль">
+                            <RadzenTextBox Placeholder="Пароль" @bind-Value="@employee.Password" />
+                        </RadzenFormField>
+                    }
+
+                    <RadzenDataGrid Data="@schedules" @ref="grid" KeyProperty="WeekdayName" SelectionMode="DataGridSelectionMode.Single" TItem="ScheduleDTO">
+                        <HeaderTemplate>
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@AddSchedule" />
+                        </HeaderTemplate>
+                        <EmptyTemplate>
+                            <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Нет расписания.</p>
+                        </EmptyTemplate>
+                        <Columns>
+                            <RadzenDataGridColumn Property="ScheduleDTO.WeekdayName" Filterable="false" Title="День недели" Width="100px" TextAlign="TextAlign.Center" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.TimeFrom" Title="Начало смены" Width="80px" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.TimeTo" Title="Конец смены" Width="80px" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.Cabinet" Title="Кабинет" Width="50px" />
+                             <RadzenDataGridColumn Context="schedule" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                <Template Context="schedule">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="(() => RemoveSchedule(schedule.Weekday))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton Text="Сохранить" Click="@SaveUser" />
                         <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
