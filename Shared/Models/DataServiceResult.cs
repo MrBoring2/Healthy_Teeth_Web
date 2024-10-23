@@ -9,15 +9,14 @@ namespace Shared.Models
 {
     public class DataServiceResult<T> where T : class
     {
-        public DataServiceResult(IEnumerable<T> result, int count)
+        public DataServiceResult(IEnumerable<T> items, int count)
         {
-            Result = result;
+            Items = items;
             Count = count;
+
         }
 
-        public IEnumerable<T> Result { get; set; }
+        public IEnumerable<T> Items { get; set; }
         public int Count { get; set; }
-        public HttpStatusCode HttpStatusCode { get; set; }
-        public string Message { get; set; } 
     }
 }

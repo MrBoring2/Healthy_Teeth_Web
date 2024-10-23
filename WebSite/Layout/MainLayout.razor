@@ -58,15 +58,19 @@
         {
             Nagivation.NavigateTo("/login");
         }
+        if (Nagivation.Uri == "/" && (user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Администратор" || user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Регистратор"))
+        {
+            Nagivation.NavigateTo("/visits");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        
+
 
         // var auth = await _localStorageService.GetItemAsync<string>("accessToken");
         // //Console.WriteLine($"Токен: {auth}");
-        
+
         // //Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
         // if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
         // {

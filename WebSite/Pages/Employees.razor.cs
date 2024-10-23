@@ -116,13 +116,42 @@ namespace WebSite.Pages
             }
             if (!string.IsNullOrEmpty(args.OrderBy))
             {
-                queryParameters.Add("orderby", args.OrderBy);
+                string[] filterOrderBy = args.OrderBy.Split(' ');
+                string orderby = "";
+                string move = filterOrderBy[1];
+                if (filterOrderBy[0].Contains("Id"))
+                {
+                    orderby = "Id";
+                }
+                else if (filterOrderBy[0].Contains("FullName"))
+                {
+                    orderby = "FullName";
+                }
+                else if (filterOrderBy[0].Contains("Specialization"))
+                {
+                    orderby = "Specialization.Title";
+                }
+                else if (filterOrderBy[0].Contains("Role"))
+                {
+                    orderby = "Account.Role.Title";
+                }
+                else if (filterOrderBy[0].Contains("Login"))
+                {
+                    orderby = "Account.Login";
+                }
+                else if (filterOrderBy[0].Contains("Gender"))
+                {
+                    orderby = "Gender";
+                }
+
+                orderby += " " + move;
+                queryParameters.Add("orderby", orderby);
             }
             queryParameters.Add("top", args.Top.ToString());
             queryParameters.Add("skip", args.Skip.ToString());
             var response = await EmployeeApiService.GetAsync(queryParameters);
-            list = response.Result.AsODataEnumerable();
-            count = response.Count;
+            list = response.Content.Items.AsODataEnumerable();
+            count = response.Content.Count;
             Console.WriteLine(count);
             isLoading = false;
             StateHasChanged();
@@ -130,10 +159,9 @@ namespace WebSite.Pages
         private async Task LoadRoles()
         {
             var response = await RoleApiService.GetAsync();
-            Console.WriteLine(response.Count);
-            if (response.Result != null)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Roles = response.Result.ToList();
+                Roles = response.Content.ToList();
                 selectedRoles = Roles;
             }
         }
@@ -141,9 +169,9 @@ namespace WebSite.Pages
         private async Task LoadSpecializations()
         {
             var response = await SpecalizationApiService.GetAsync();
-            if (response.Result != null)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Specializations = response.Result.ToList();
+                Specializations = response.Content.ToList();
                 selectedSpecializations = Specializations;
             }
         }

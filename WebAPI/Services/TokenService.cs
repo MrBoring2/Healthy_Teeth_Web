@@ -41,9 +41,6 @@ namespace WebAPI.Services
                 tokenRecord = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.EmployeeRefreshToken.RefreshToken.Equals(refreshToken));
                 if (tokenRecord != null)
                 {
-
-                    //tokenRecord.EmployeeRefreshToken.RefreshToken = null;
-                    //tokenRecord.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
                     _context.EmployeeRefreshTokens.Remove(tokenRecord.EmployeeRefreshToken);
                     await _context.SaveChangesAsync();
                     return true;

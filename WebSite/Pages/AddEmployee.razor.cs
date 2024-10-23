@@ -85,9 +85,9 @@ namespace WebSite.Pages
         private async Task LoadRoles()
         {
             var response = await RoleApiService.GetAsync();
-            if (response.Result != null)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Roles = response.Result.ToList();
+                Roles = response.Content.ToList();
             }
             else
             {
@@ -99,9 +99,9 @@ namespace WebSite.Pages
         private async Task LoadSpecializations()
         {
             var response = await SpecializaionApiService.GetAsync();
-            if (response.Result != null)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Specializations = response.Result.ToList();
+                Specializations = response.Content.ToList();
             }
         }
 

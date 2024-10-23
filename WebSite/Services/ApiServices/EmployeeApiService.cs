@@ -18,17 +18,17 @@ namespace WebSite.Services.ApiServices
         }
 
 
-        public async Task<DataServiceResult<EmployeeDTO>> GetAsync()
+        public async Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/employees");
             try
             {
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DataServiceResult<EmployeeDTO>>(responseObjects);
+                return new(response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<EmployeeDTO>>(responseObjects));
             }
             catch (Exception ex)
             {
-                return new DataServiceResult<EmployeeDTO>(null, 0);
+                return new ResponseModel<IEnumerable<EmployeeDTO>>(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
 
@@ -38,7 +38,7 @@ namespace WebSite.Services.ApiServices
             throw new NotImplementedException();
         }
 
-        public async Task<DataServiceResult<EmployeeDTO>> GetAsync(Dictionary<string, string> queryParameters)
+        public async Task<ResponseModel<DataServiceResult<EmployeeDTO>>> GetAsync(Dictionary<string, string> queryParameters)
         {
             var queryString = string.Join("&", queryParameters
                 .Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
@@ -47,11 +47,12 @@ namespace WebSite.Services.ApiServices
             {
                 response = await _httpClient.GetAsync($"api/employees?{queryString}");
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DataServiceResult<EmployeeDTO>>(responseObjects);
+                return new(response.StatusCode, JsonConvert.DeserializeObject<DataServiceResult<EmployeeDTO>>(responseObjects));
             }
             catch (Exception ex)
             {
-                return new DataServiceResult<EmployeeDTO>(null, 0);
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
 

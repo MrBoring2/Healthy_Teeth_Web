@@ -14,26 +14,27 @@ namespace WebSite.Services.ApiServices
             _httpClient = httpClient;
         }
 
-        public async Task<DataServiceResult<SpecializationDTO>> GetAsync()
+        public async Task<ResponseModel<IEnumerable<SpecializationDTO>>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/specializations");
             try
             {
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DataServiceResult<SpecializationDTO>>(responseObjects);
+                return new(response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<SpecializationDTO>>(responseObjects));
             }
             catch (Exception ex)
             {
-                return new DataServiceResult<SpecializationDTO>(null, 0);
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
 
-        public Task<DataServiceResult<SpecializationDTO>> GetAsync(Dictionary<string, string> queryParameters)
+        public Task<ResponseModel<SpecializationDTO>> GetAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ResponseModel<SpecializationDTO>> GetAsync(int id)
+        public Task<ResponseModel<DataServiceResult<SpecializationDTO>>> GetAsync(Dictionary<string, string> queryParameters)
         {
             throw new NotImplementedException();
         }

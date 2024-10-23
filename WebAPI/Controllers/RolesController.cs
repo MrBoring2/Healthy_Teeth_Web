@@ -30,25 +30,10 @@ namespace WebAPI.Controllers
         // GET: api/Roles
         [Authorize]
         [HttpGet]
-        public async Task<DataServiceResult<RoleDTO>> GetRoles()
+        public async Task<IEnumerable<RoleDTO>> GetRoles()
         {
-            var roles =  await _context.Roles.ToListAsync();
-            return new(_mapper.Map<IEnumerable<RoleDTO>>(roles), roles.Count);
-        }
-
-        // GET: api/Roles/5
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Role>> GetRole(int id)
-        {
-            var role = await _context.Roles.FindAsync(id);
-
-            if (role == null)
-            {
-                return NotFound();
-            }
-
-            return role;
+            var roles =  _context.Roles.AsQueryable();
+            return _mapper.Map<IEnumerable<RoleDTO>>(roles);
         }
     }
 }

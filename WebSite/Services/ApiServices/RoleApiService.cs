@@ -14,17 +14,18 @@ namespace WebSite.Services.ApiServices
             _httpClient = httpClient;
         }
 
-        public async Task<DataServiceResult<RoleDTO>> GetAsync()
+        public async Task<ResponseModel<IEnumerable<RoleDTO>>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/roles");
             try
             {
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DataServiceResult<RoleDTO>>(responseObjects);
+                return new (response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<RoleDTO>>(responseObjects));
             }
             catch (Exception ex)
             {
-                return new DataServiceResult<RoleDTO>(null, 0);
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
 
@@ -33,7 +34,7 @@ namespace WebSite.Services.ApiServices
             throw new NotImplementedException();
         }
 
-        public Task<DataServiceResult<RoleDTO>> GetAsync(Dictionary<string, string> queryParameters)
+        public Task<ResponseModel<DataServiceResult<RoleDTO>>> GetAsync(Dictionary<string, string> queryParameters)
         {
             throw new NotImplementedException();
         }

@@ -15,6 +15,10 @@ using Shared.DTO;
 using AutoMapper;
 using WebAPI.SignalR;
 using System.Reflection;
+using System.Collections;
+using WebAPI.Filters;
+using WebAPI.Helpers;
+using Serilog;
 
 namespace WebAPI.Controllers
 {
@@ -26,117 +30,66 @@ namespace WebAPI.Controllers
         private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly HealthyTeethDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<EmployeesController> _logger;
 
-        public EmployeesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
+        public EmployeesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<EmployeesController> logger)
         {
             _context = context;
             _mapper = mapper;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         // GET: api/Employees
         [Authorize]
         [HttpGet]
-        public async Task<DataServiceResult<EmployeeDTO>> GetEmployees(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
+        public async Task<ActionResult<DataServiceResult<EmployeeDTO>>> GetEmployees(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
         {
-
-            Console.WriteLine(search + " " + orderBy + " " + rolesIds + " " + spesializationIds + " " + top + " " + skip);
-
-            var employees = _context.Employees.Include(p => p.Specialization).Include(p => p.Account).ThenInclude(p => p!.Role)
-                .AsQueryable();
-            if (string.IsNullOrEmpty(orderBy))
+            //Console.WriteLine(search + " " + orderBy + " " + rolesIds + " " + spesializationIds + " " + top + " " + skip);
+            //_logger.LogInformation("Переход к сотрудникам");
+            var orderBySplit = orderBy?.Split(' ');
+            var roleIds = rolesIds?.Split(',').Select(int.Parse);
+            var spesIds = spesializationIds?.Split(',').Select(int.Parse);
+            EmployeeFilter filter;
+            try
             {
-                Console.WriteLine("Сортировка по умолчанию");
+                filter = new EmployeeFilter(search, roleIds, spesIds, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+
+            var employees = _context.Employees
+                                                        .Include(p => p.Specialization)
+                                                        .Include(p => p.Account)
+                                                        .ThenInclude(p => p.Role)
+                                                        .AsSplitQuery()
+                                                        .AsNoTracking()
+                                                        .Where(filter.FilterExpression)
+                                                        .AsEnumerable();
+                                                        
+            if (string.IsNullOrEmpty(filter.OrderBy))
+            {
                 employees = employees.OrderBy(p => p.Id);
             }
             else
             {
-                Console.WriteLine("Другая сортировка");
-                var order = orderBy.Split(' ');
-                Console.WriteLine(order[0]);
-                if (order[0].Contains("Id"))
+                if (filter.OrderDirection == "asc")
                 {
-                    if (order[1] == "asc")
-                    {
-                        employees = employees.OrderBy(p => p.Id);
-                    }
-                    else
-                    {
-                        employees = employees.OrderByDescending(p => p.Id);
-                    }
+                    employees = employees.OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy));
                 }
-                else if (order[0].Contains("FullName"))
+                else
                 {
-                    if (order[1] == "asc")
-                    {
-                        employees = employees.OrderBy(p => p.Id);
-                    }
-                    else
-                    {
-                        employees = employees.OrderByDescending(p => p.Id);
-                    }
-                }
-                else if (order[0].Contains("Role/Title"))
-                {
-                    if (order[1] == "asc")
-                    {
-                        employees = employees.OrderBy(p => p.Account.Role.Title);
-                    }
-                    else
-                    {
-                        employees = employees.OrderByDescending(p => p.Account.Role.Title);
-                    }
-                }
-                else if (order[0].Contains("Login"))
-                {
-                    if (order[1] == "asc")
-                    {
-                        employees = employees.OrderBy(p => p.Account.Login);
-                    }
-                    else
-                    {
-                        employees = employees.OrderByDescending(p => p.Account.Login);
-                    }
-                }
-                else if (order[0].Contains("Gender"))
-                {
-                    if (order[1] == "asc")
-                    {
-                        employees = employees.OrderBy(p => p.Gender);
-                    }
-                    else
-                    {
-                        employees = employees.OrderByDescending(p => p.Gender);
-                    }
-                }
-
-                Console.WriteLine("Не вышло");
+                    employees = employees.OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy));
+                }                
             }
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                employees = employees.Where(p => p.FullName.ToLower().Contains(search.ToLower()));
-            }
-
-
-            if (!string.IsNullOrEmpty(rolesIds))
-            {
-                var roleIds = rolesIds.Split(',').Select(int.Parse);
-
-                employees = employees.Where(p => roleIds.Contains(p.Account.RoleId));
-            }
-            if (!string.IsNullOrEmpty(spesializationIds))
-            {
-                var spesIds = spesializationIds.Split(',').Select(int.Parse);
-
-                employees = employees.Where(p => spesIds.Contains(p.SpecializationId));
-            }
-
+          
             var count = employees.Count();
 
-            employees = employees.Skip(int.Parse(skip)).Take(int.Parse(top));
+            employees = employees.Skip(filter.Skip).Take(filter.Top);
 
-            return new DataServiceResult<EmployeeDTO>(_mapper.Map<IEnumerable<EmployeeDTO>>(await employees.ToListAsync()), count);
+            return new DataServiceResult<EmployeeDTO>(_mapper.Map<IEnumerable<EmployeeDTO>>(employees), count);
         }
 
         // GET: api/Employees/5

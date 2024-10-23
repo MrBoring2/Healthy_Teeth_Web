@@ -2,6 +2,7 @@
 using Radzen;
 using Shared.DTO;
 using Shared.Models;
+using System.Net;
 using System.Net.Mime;
 using System.Text;
 using WebSite.Models;
@@ -17,17 +18,18 @@ namespace WebSite.Services.ApiServices
             _httpClient = httpClient;
         }
 
-        public async Task<DataServiceResult<ServiceDTO>> GetAsync()
+        public async Task<ResponseModel<IEnumerable<ServiceDTO>>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/services");
             try
             {
                 var responseObjects = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DataServiceResult<ServiceDTO>>(responseObjects);
+                return new(response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<ServiceDTO>>(responseObjects), "Не удалось получить данные");
             }
             catch (Exception ex)
             {
-                return new DataServiceResult<ServiceDTO>(null, 0);
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
 
@@ -36,7 +38,7 @@ namespace WebSite.Services.ApiServices
             throw new NotImplementedException();
         }
 
-        public Task<DataServiceResult<ServiceDTO>> GetAsync(Dictionary<string, string> queryParameters)
+        public Task<ResponseModel<DataServiceResult<ServiceDTO>>> GetAsync(Dictionary<string, string> queryParameters)
         {
             throw new NotImplementedException();
         }
@@ -61,5 +63,7 @@ namespace WebSite.Services.ApiServices
         {
             throw new NotImplementedException();
         }
+
+    
     }
 }

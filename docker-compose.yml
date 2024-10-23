@@ -22,11 +22,15 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_Kestrel__Certificates__Default__Password=0798661
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/healthy-teeth.pfx
+      - TZ=Asia/Yekaterinburg
     ports:
       - "8081:80"
       - "8082:443"
     volumes:
       - ~/.aspnet/https:/https:ro
+      - .healthy-teeth-api-logs:/logger/logs
+      # - healthy-teeth-api-logs:/logger/logs
+      - /etc/localtime:/etc/localtime:ro
   web:
     image: web_site:v1
     build:
@@ -43,4 +47,7 @@ services:
 
 volumes:
   healthy-teeth-pgdata:
+  healthy-teeth-api-logs:
+  
+    
 

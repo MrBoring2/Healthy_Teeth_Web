@@ -30,26 +30,10 @@ namespace WebAPI.Controllers
         // GET: api/Specializations
         [Authorize]
         [HttpGet]
-        public async Task<DataServiceResult<SpecializationDTO>> GetSpecializations()
+        public async Task<IEnumerable<SpecializationDTO>> GetSpecializations()
         {
-            var specializations = await _context.Specializations.ToListAsync();
-            return new(_mapper.Map<IEnumerable<SpecializationDTO>>(specializations), specializations.Count);
+            var specializations = _context.Specializations.AsQueryable();
+            return _mapper.Map<IEnumerable<SpecializationDTO>>(specializations);
         }
-
-        // GET: api/Specializations/5
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Specialization>> GetSpecialization(int id)
-        {
-            var specialization = await _context.Specializations.FindAsync(id);
-
-            if (specialization == null)
-            {
-                return NotFound();
-            }
-
-            return specialization;
-        }
-
     }
 }
