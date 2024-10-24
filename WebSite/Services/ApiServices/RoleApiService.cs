@@ -5,7 +5,11 @@ using WebSite.Models;
 
 namespace WebSite.Services.ApiServices
 {
-    public class RoleApiService : IApiService<RoleDTO>
+    public interface IRoleApiService
+    {
+        Task<ResponseModel<IEnumerable<RoleDTO>>> GetAsync();
+    }
+    public class RoleApiService : IRoleApiService
     {
         private readonly HttpClient _httpClient;
 
@@ -28,25 +32,6 @@ namespace WebSite.Services.ApiServices
                 return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
-
-        public Task<ResponseModel<RoleDTO>> GetAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<DataServiceResult<RoleDTO>>> GetAsync(Dictionary<string, string> queryParameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<string>> PostAsync(object data)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<string>> PutAsync(int id, object data)
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }

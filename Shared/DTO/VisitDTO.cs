@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities
+namespace Shared.DTO
 {
-    public class Visit
+    public class VisitDTO
     {
         public int Id { get; set; }
         [Required]
@@ -23,12 +24,11 @@ namespace Entities
         public int EmployeeId { get; set; }
         [Required]
         public int PatientId { get; set; }
-        public required int VisitStatusId { get; set; }
-        public virtual VisitStatus? VisitStatus { get; set; }
-        public virtual Employee? Employee { get; set; }
-        public virtual Patient? Patient { get; set; }
-        public virtual List<Service> Services { get; set; } = [];
-        public virtual List<ServiceToVisit> ServiceToVisits { get; set; } = [];
-
+        public int VisitStatusId { get; set; }
+        public virtual VisitStatusDTO? VisitStatus { get; set; }
+        public virtual EmployeeDTO? Employee { get; set; }
+        public virtual PatientDTO? Patient { get; set; }
+        public virtual List<ServiceDTO> Services { get; set; } = [];
+        //public virtual List<ServiceToVisit> ServiceToVisits { get; set; } = [];
     }
 }

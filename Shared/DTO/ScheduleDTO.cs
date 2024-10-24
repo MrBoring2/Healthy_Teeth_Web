@@ -21,25 +21,26 @@ namespace Shared.DTO
         public int Weekday { get; set; }
         [Required]
         public int EmployeeId { get; set; }
+        
         public string WeekdayName
         {
             get
             {
                 switch (Weekday)
                 {
-                    case 0:
-                        return "Понедельник";
                     case 1:
-                        return "Вторник";
+                        return "Понедельник";
                     case 2:
-                        return "Среда";
+                        return "Вторник";
                     case 3:
-                        return "Четверг";
+                        return "Среда";
                     case 4:
-                        return "Пятница";
+                        return "Четверг";
                     case 5:
-                        return "Суббота";
+                        return "Пятница";
                     case 6:
+                        return "Суббота";
+                    case 0:
                         return "Воскресенье";
                     default:
                         return "Понедельник";

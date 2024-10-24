@@ -19,13 +19,13 @@ namespace WebSite.Pages
         {
             Weekdays = new List<Weekday>
             {
-                new Weekday(0, "Понедельник"),
-                new Weekday(1, "Вторник"),
-                new Weekday(2, "Среда"),
-                new Weekday(3, "Четвер"),
-                new Weekday(4, "Пятница"),
-                new Weekday(5, "Суббота"),
-                new Weekday(6, "Воскресенье")
+                new Weekday(1, "Понедельник"),
+                new Weekday(2, "Вторник"),
+                new Weekday(3, "Среда"),
+                new Weekday(4, "Четвер"),
+                new Weekday(5, "Пятница"),
+                new Weekday(6, "Суббота"),
+                new Weekday(7, "Воскресенье")
             };
         }
 

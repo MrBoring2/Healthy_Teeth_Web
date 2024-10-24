@@ -5,7 +5,11 @@ using WebSite.Models;
 
 namespace WebSite.Services.ApiServices
 {
-    public class SpecializationApiService : IApiService<SpecializationDTO>
+    public interface ISpecializationApiService
+    {
+        Task<ResponseModel<IEnumerable<SpecializationDTO>>> GetAsync();
+    }
+    public class SpecializationApiService : ISpecializationApiService
     {
         private readonly HttpClient _httpClient;
 
@@ -27,26 +31,6 @@ namespace WebSite.Services.ApiServices
                 Console.WriteLine(ex.Message);
                 return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
-        }
-
-        public Task<ResponseModel<SpecializationDTO>> GetAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<DataServiceResult<SpecializationDTO>>> GetAsync(Dictionary<string, string> queryParameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<string>> PostAsync(object data)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<string>> PutAsync(int id, object data)
-        {
-            throw new NotImplementedException();
         }
     }
 }

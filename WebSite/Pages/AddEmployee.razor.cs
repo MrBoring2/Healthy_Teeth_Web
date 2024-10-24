@@ -19,15 +19,15 @@ namespace WebSite.Pages
         [Parameter]
         public int EmployeeId { get; set; }
         [Inject]
-        private IApiServiceFactory ApiServiceFactory { get; set; }
-        [Inject]
         public DialogService DialogService { get; set; }
         [Inject]
         NotificationService NotificationService { get; set; }
-
-        private IApiService<RoleDTO> RoleApiService { get; set; }
-        private IApiService<SpecializationDTO> SpecializaionApiService { get; set; }
-        private IApiService<EmployeeDTO> EmployeeApiService { get; set; }
+        [Inject]
+        private IRoleApiService RoleApiService { get; set; }
+        [Inject]
+        private ISpecializationApiService SpecializaionApiService { get; set; }
+        [Inject]
+        private IEmployeeApiService EmployeeApiService { get; set; }
         private RadzenDataGrid<ScheduleDTO> grid;
         private List<RoleDTO> Roles { get; set; }
         private List<Gender> Genders;
@@ -49,9 +49,6 @@ namespace WebSite.Pages
         protected override async Task OnInitializedAsync()
         {
             employee.Schedules = new List<ScheduleDTO>();
-            RoleApiService = ApiServiceFactory.GetRoleApiService();
-            SpecializaionApiService = ApiServiceFactory.GetSpecializationApiService();
-            EmployeeApiService = ApiServiceFactory.GetEmployeeApiService();
 
 
             Genders = new List<Gender>
@@ -155,7 +152,7 @@ namespace WebSite.Pages
                 return;
             }
             schedules.Add(schedule);
-            schedules = new ObservableCollection<ScheduleDTO>(schedules.OrderBy(p => p.Weekday));
+            schedules = new ObservableCollection<ScheduleDTO>(schedules.OrderBy(p => (p.Weekday + 6) % 7));
         }
         public async Task RemoveSchedule(int weekday)
         {

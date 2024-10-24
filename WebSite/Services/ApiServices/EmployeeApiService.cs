@@ -9,7 +9,16 @@ using Radzen;
 
 namespace WebSite.Services.ApiServices
 {
-    public class EmployeeApiService : IApiService<EmployeeDTO>
+    public interface IEmployeeApiService
+    {
+        Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetAsync();
+        Task<ResponseModel<DataServiceResult<EmployeeDTO>>> GetAsync(Dictionary<string, string> queryParameters);
+        Task<ResponseModel<EmployeeDTO>> GetAsync(int id);
+        Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetForScheduleAsync(Dictionary<string, string> queryParameters);
+        Task<ResponseModel<string>> PostAsync(object data);
+        Task<ResponseModel<string>> PutAsync(int id, object data);
+    }
+    public class EmployeeApiService : IEmployeeApiService
     {
         private readonly HttpClient _httpClient;
         public EmployeeApiService(HttpClient httpClient)
@@ -102,6 +111,24 @@ namespace WebSite.Services.ApiServices
             {
                 Console.WriteLine("Произошла ошибка: " + ex.Message);
                 return new ResponseModel<string>(response.StatusCode, ex.Message);
+            }
+        }
+
+        public async Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetForScheduleAsync(Dictionary<string, string> queryParameters)
+        {
+            var queryString = string.Join("&", queryParameters
+                 .Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            HttpResponseMessage response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.GetAsync($"api/Employees/ForSchedule?{queryString}");
+                var responseObjects = await response.Content.ReadAsStringAsync();
+                return new(response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<EmployeeDTO>>(responseObjects));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
             }
         }
     }

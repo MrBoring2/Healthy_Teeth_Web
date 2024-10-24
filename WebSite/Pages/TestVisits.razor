@@ -1,0 +1,38 @@
+﻿@inject DialogService DialogService
+@page "/visits"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
+@using WebSite.Models
+
+<CascadingAuthenticationState>
+    <AuthorizeView Context="another2">
+        <Authorized>
+            <RadzenDataGrid Data="@data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellClick="@OnCellClick" CellRender="OnCellRender" ColumnWidth="200px">
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
+                <Columns>
+                    @foreach (var column in columns)
+                    {
+                        <RadzenDataGridColumn @key=@column.Key UniqueID="@column.Key" Title="@column.Value.ToString()">
+                            <Template Context="another">
+
+                                @if (another[@column.Key].StartTime < another[@column.Key].TargetTime || another[@column.Key].EndTime > another[@column.Key].TargetTime)
+                                {
+                                    <span style='color: var(--rz-warning-light-color)'>@another[@column.Key].Value</span>
+                                }
+                                else
+                                {
+
+                                    <span style='color: var(--rz-text-color)'>@another[@column.Key].Value</span>
+                                }
+
+                                @* </div>                              *@
+                            </Template>
+                        </RadzenDataGridColumn>
+                    }
+                </Columns>
+            </RadzenDataGrid>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

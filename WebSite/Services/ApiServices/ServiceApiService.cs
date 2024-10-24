@@ -9,7 +9,15 @@ using WebSite.Models;
 
 namespace WebSite.Services.ApiServices
 {
-    public class ServiceApiService : IApiService<ServiceDTO>
+    public interface IServiceApiService
+    {
+        Task<ResponseModel<IEnumerable<ServiceDTO>>> GetAsync();
+        Task<ResponseModel<DataServiceResult<ServiceDTO>>> GetAsync(Dictionary<string, string> queryParameters);
+        Task<ResponseModel<ServiceDTO>> GetAsync(int id);
+        Task<ResponseModel<string>> PostAsync(object data);
+        Task<ResponseModel<string>> PutAsync(int id, object data);
+    }
+    public class ServiceApiService : IServiceApiService
     {
         private readonly HttpClient _httpClient;
 

@@ -15,6 +15,9 @@ namespace WebAPI.Services
             CreateMap<Service, ServiceDTO>().ReverseMap();
             CreateMap<Specialization, SpecializationDTO>().ReverseMap();
             CreateMap<Service, ServiceViewModel>();
+            CreateMap<Visit, VisitDTO>();
+            CreateMap<Patient, PatientDTO>();
+            CreateMap<VisitStatus, VisitStatusDTO>();
             CreateMap<Schedule, ScheduleDTO>().ReverseMap();
             CreateMap<Employee, EmployeeViewModel>()
                 .ForMember(p => p.RoleId, op => op.MapFrom(s => s.Account!.RoleId))

@@ -113,6 +113,22 @@ namespace WebAPI.Controllers
             return Ok(_mapper.Map<EmployeeDTO>(employee));
         }
 
+        [Authorize]
+        [HttpGet("/api/Employees/ForSchedule")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetEmployeesForSchedule(string date, int specializationId)
+        {
+            var dateOnly = DateOnly.ParseExact(date, "dd.MM.yyyy");
+            var employees = _context.Employees
+                                     .Where(p => p.SpecializationId == specializationId)
+                                     .Include(p => p.Schedules)
+                                     .Include(p => p.Visits
+                                     .Where(p => p.VisitDate == dateOnly))
+                                     .ThenInclude(p => p.Patient)
+                                     .AsQueryable();
+
+            return Ok(employees);
+        }
+
         // PUT: api/Employees/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]

@@ -37,7 +37,10 @@ builder.Services.AddRadzenCookieThemeService(options =>
     options.Duration = TimeSpan.FromDays(7);
 });
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddTransient<IApiServiceFactory, ApiServiceFactory>();
+builder.Services.AddTransient<IEmployeeApiService, EmployeeApiService>();
+builder.Services.AddTransient<IRoleApiService, RoleApiService>();
+builder.Services.AddTransient<IServiceApiService, ServiceApiService>();
+builder.Services.AddTransient<ISpecializationApiService, SpecializationApiService>();
 builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped(
     sp => sp.GetService<IHttpClientFactory>().CreateClient("api"));

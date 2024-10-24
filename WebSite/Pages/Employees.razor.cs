@@ -14,14 +14,15 @@ namespace WebSite.Pages
     public partial class Employees
     {
         [Inject]
-        private IApiServiceFactory ApiServiceFatory { get; set; }
-        [Inject]
         private HubConnection HubConnection { get; set; }
         [Inject]
         private DialogService DialogService { get; set; }
-        private IApiService<EmployeeDTO> EmployeeApiService { get; set; }
-        private IApiService<RoleDTO> RoleApiService { get; set; }
-        private IApiService<SpecializationDTO> SpecalizationApiService { get; set; }
+        [Inject]
+        private IEmployeeApiService EmployeeApiService { get; set; }
+        [Inject]
+        private IRoleApiService RoleApiService { get; set; }
+        [Inject]
+        private ISpecializationApiService SpecalizationApiService { get; set; }
         private ODataEnumerable<EmployeeDTO> list;
         private IList<EmployeeDTO> SelectedEmployees { get; set; }
         private RadzenDataGrid<EmployeeDTO> grid;
@@ -75,9 +76,6 @@ namespace WebSite.Pages
             search = string.Empty;
 
             count = 10;
-            EmployeeApiService = ApiServiceFatory.GetEmployeeApiService();
-            RoleApiService = ApiServiceFatory.GetRoleApiService();
-            SpecalizationApiService = ApiServiceFatory.GetSpecializationApiService();
 
             HubConnection.On<string>("EmployeeAdded", async mes =>
             {
