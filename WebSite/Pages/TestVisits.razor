@@ -7,31 +7,38 @@
 <CascadingAuthenticationState>
     <AuthorizeView Context="another2">
         <Authorized>
-            <RadzenDataGrid Data="@data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellClick="@OnCellClick" CellRender="OnCellRender" ColumnWidth="200px">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenFormField Text="Дата">
+                    <RadzenDatePicker @bind-Value="@SelectedDate" />
+                </RadzenFormField>
+                <RadzenFormField Text="Специальность">
+                    <RadzenDropDown @bind-Value="@SelectedSpecialization" Data="@Specializations" TextProperty="@nameof(SpecializationDTO.Title)" Multiple=false />
+                </RadzenFormField>
+                <RadzenFormField Text="Доктор">
+                    <RadzenDropDown @bind-Value="SelectedEmployees" Data="@Employees" Multiple=true TextProperty="@nameof(EmployeeDTO.FullName)" />
+                </RadzenFormField>
+            </RadzenStack>
+            <RadzenDataGrid Data="@Data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellClick="@OnCellClick"
+                            CellRender="OnCellRender" IsLoading="@IsLoading" LoadData=@LoadTable>
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
                 </EmptyTemplate>
                 <Columns>
-                    @foreach (var column in columns)
+                    @if (Columns != null)
                     {
-                        <RadzenDataGridColumn @key=@column.Key UniqueID="@column.Key" Title="@column.Value.ToString()">
-                            <Template Context="another">
-
-                                @if (another[@column.Key].StartTime < another[@column.Key].TargetTime || another[@column.Key].EndTime > another[@column.Key].TargetTime)
-                                {
-                                    <span style='color: var(--rz-warning-light-color)'>@another[@column.Key].Value</span>
-                                }
-                                else
-                                {
-
-                                    <span style='color: var(--rz-text-color)'>@another[@column.Key].Value</span>
-                                }
-
-                                @* </div>                              *@
-                            </Template>
-                        </RadzenDataGridColumn>
+                        @foreach (var column in Columns)
+                        {
+                            <RadzenDataGridColumn @key=@column.Key UniqueID="@column.Key" Title="@column.Value.ToString()">
+                                <Template Context="another">
+                                    <RadzenText TextAlign="TextAlign.Center">@another[@column.Key].Value</RadzenText>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        }
                     }
                 </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
             </RadzenDataGrid>
         </Authorized>
     </AuthorizeView>

@@ -6,6 +6,7 @@ using Shared.DTO;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using WebSite.Models;
@@ -17,59 +18,154 @@ namespace WebSite.Pages
     {
         [Inject]
         private IEmployeeApiService EmployeeApiService { get; set; }
-        private DateOnly CurrentDate { get; set; }
-        public List<Dictionary<string, ScheduleRegister>> data { get; set; }
-        public IDictionary<string, object> columns { get; set; }
+        [Inject]
+        private ISpecializationApiService SpeciazaizationApiService { get; set; }
+        public List<Dictionary<string, ScheduleRegister>> Data { get; set; }
+        private SpecializationDTO selectedSpecialization;
+
+        private IList<EmployeeDTO> selectedEmployees;
+        public List<SpecializationDTO> Specializations { get; set; }
+        public List<EmployeeDTO> DisplayedEmployees { get; set; }
+        public List<EmployeeDTO> Employees { get; set; }
+        private bool isLoading;
+        private LoadDataArgs lastArgs;
+        public bool IsLoading
+        {
+            get => isLoading;
+            set
+            {
+                isLoading = value;
+                StateHasChanged();
+            }
+        }
+        public DateOnly SelectedDate
+        {
+            get => selectedDate;
+            set
+            {
+                selectedDate = value;
+                LoadTable(lastArgs);
+            }
+        }
+        private DateOnly selectedDate;
+        public SpecializationDTO SelectedSpecialization
+        {
+            get => selectedSpecialization;
+            set
+            {
+                selectedSpecialization = value;
+                LoadTable(lastArgs);
+            }
+        }
+        public IList<EmployeeDTO> SelectedEmployees
+        {
+            get => selectedEmployees;
+            set
+            {
+                selectedEmployees = value;
+                GenerateTable(SelectedEmployees.ToList());
+                Console.WriteLine("Даныне зименены");
+                StateHasChanged();
+            }
+        }
+        public IDictionary<string, object> Columns { get; set; }
         public IList<Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>> selectedCellData = new List<Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>>();
         protected override async Task OnInitializedAsync()
         {
-            CurrentDate = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-            await LoadDoctors();
+            selectedDate = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+            await LoadSpecializations();
         }
 
-        private async Task LoadDoctors()
+        private async Task LoadTable(LoadDataArgs args)
         {
-            data = new List<Dictionary<string, ScheduleRegister>>();
-            columns = new Dictionary<string, object>();
+            lastArgs = args;
+            IsLoading = true;
             var queryParameters = new Dictionary<string, string>();
-            queryParameters.Add("date", new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).ToShortDateString());
-            queryParameters.Add("specializationId", "2");
+            queryParameters.Add("date", SelectedDate.ToShortDateString());
+            queryParameters.Add("specializationId", SelectedSpecialization == null ? "2" : SelectedSpecialization.Id.ToString());
             var response = await EmployeeApiService.GetForScheduleAsync(queryParameters);
-            var list = response.Content;
-            columns.Add("Время", "Время");
-            foreach (var item in list)
-            {
-                columns.Add(item.Id.ToString(), item.FullName);
-            }
-            TimeOnly time = new TimeOnly(8, 0, 0, 0);
-            for (int i = 0; i < (20 - 8) * 2; i++)
-            {
-                var row = new Dictionary<string, ScheduleRegister>();
-                row.Add(columns.Keys.First(), new ScheduleRegister(0, null, null, null, time)); ;
-                int k = 0;
-                foreach (KeyValuePair<string, object> column in columns)
-                {
-                    if (k == 0)
-                    {
-                        k++;
-                        continue;
-                    }
-                    var employee = list.FirstOrDefault(p => p.Id == Convert.ToInt32(column.Key));
-                    var employeeSchedule = employee.Schedules.FirstOrDefault(p => p.Weekday == (int)CurrentDate.DayOfWeek);
-                    row.Add(column.Key.ToString(),
-                        new ScheduleRegister(employee.Id,
-                                                   employeeSchedule?.TimeFrom,
-                                                   employeeSchedule?.TimeTo,
-                                                   time,
-                                                   employee.Visits.FirstOrDefault(p => p.VisirtTime == time)));
-                    k++;
-                }
+            var tempCount = Employees?.Count;
+            Employees = response.Content.ToList();
 
-                time = time.AddMinutes(30);
-                data.Add(row);
+            Console.WriteLine("Выбрано:"  + SelectedEmployees?.Count);
+            if (SelectedEmployees == null || SelectedEmployees?.Count == 0 || Employees.Count != tempCount)
+            {
+                Console.WriteLine("Стандарт");
+                await GenerateTable(Employees);
+
             }
+            else
+            {
+                if (SelectedEmployees != null)
+                {
+                    selectedEmployees = Employees.Where(p => SelectedEmployees.Select(e => e.Id).Contains(p.Id)).ToList();
+                    //StateHasChanged();
+                }
+                await GenerateTable(SelectedEmployees.ToList());
+
+            }
+        }
+
+        private async Task GenerateTable(List<EmployeeDTO> employees)
+        {
+            if (employees.Count == 0)
+                employees = Employees;
+
+
+            await Task.Run(() =>
+            {
+                Columns = new Dictionary<string, object>();
+                if (Columns.Count == 0)
+                    Columns.Add("Время", "Время");
+                Console.WriteLine("Столбец время доабвлен");
+                foreach (var item in employees)
+                {
+                    Columns.Add(item.Id.ToString(), item.FullName);
+                }
+                var temp = new List<Dictionary<string, ScheduleRegister>>();
+
+                for (var time = new TimeOnly(8, 0, 0, 0); time < new TimeOnly(20, 0, 0); time = time.AddMinutes(30))
+                {
+                    var row = new Dictionary<string, ScheduleRegister>();
+                    row.Add(Columns.Keys.First(), new ScheduleRegister(0, null, null, null, time)); ;
+                    int k = 0;
+                    foreach (KeyValuePair<string, object> column in Columns)
+                    {
+                        if (k == 0)
+                        {
+                            k++;
+                            continue;
+                        }
+                        var employee = employees.FirstOrDefault(p => p.Id == Convert.ToInt32(column.Key));
+                        var employeeSchedule = employee.Schedules.FirstOrDefault(p => p.Weekday == (int)SelectedDate.DayOfWeek);
+                        Console.WriteLine(employee.Visits?.Count());
+                        row.Add(column.Key.ToString(),
+                            new ScheduleRegister(employee.Id,
+                                                       employeeSchedule?.TimeFrom,
+                                                       employeeSchedule?.TimeTo,
+                                                       time,
+                                                       employee.Visits?.FirstOrDefault(p => p.VisitDate.DayOfWeek == SelectedDate.DayOfWeek && p.VisirtTime == time)));
+                        k++;
+                    }
+
+                    temp.Add(row);
+                }
+                Data = temp;
+                IsLoading = false;
+                StateHasChanged();
+            });
+
+        }
+
+        public async Task LoadSpecializations()
+        {
+            var response = await SpeciazaizationApiService.GetAsync();
+            Specializations = response.Content.ToList();
+            Specializations.Remove(Specializations.FirstOrDefault(p => p.Id == 1));
+            selectedSpecialization = Specializations.FirstOrDefault();
             StateHasChanged();
         }
+
         public async Task OnCellClick(DataGridCellMouseEventArgs<Dictionary<string, ScheduleRegister>> args)
         {
             selectedCellData.Clear();
@@ -90,13 +186,13 @@ namespace WebSite.Pages
         }
 
 
-        void OnCellRender(DataGridCellRenderEventArgs<Dictionary<string, ScheduleRegister>> args)
+        private void OnCellRender(DataGridCellRenderEventArgs<Dictionary<string, ScheduleRegister>> args)
         {
             var c = args.Column.UniqueID;
             var d = args.Data[c];
             if (args.Column.Title == "Время")
             {
-                args.Column.Width = "50px";
+                args.Column.Width = "55px";
             }
             if (args.Column.UniqueID == c)
             {
