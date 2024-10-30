@@ -49,7 +49,9 @@ namespace WebAPI.Controllers
                 var token = JwtTokenGenerator.GenerateToken(userClaims);
                 var refreshToken = GenerateRefreshToken();
 
-                await _tokenService.SaveRefreshToken(user.Id, refreshToken);
+
+                Console.WriteLine("UserAgent: " + HttpContext.Request.Headers.UserAgent.ToString());
+                await _tokenService.SaveRefreshToken(user.Id, HttpContext.Request.Headers.UserAgent.ToString(), refreshToken);
 
                 //HttpContext.Response.Cookies.Append(".AspNetCore.Application.Id", token.access_token);
                 return Ok(new LoginResponse
@@ -74,7 +76,7 @@ namespace WebAPI.Controllers
 
             try
             {
-                var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken);
+                var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken, Request.Headers.UserAgent.ToString());
                 if (string.IsNullOrEmpty(login))
                 {
                     _logger.LogWarning("Истёк токен обновления пользователя {0}", login);
@@ -92,7 +94,7 @@ namespace WebAPI.Controllers
 
                 var token = JwtTokenGenerator.GenerateToken(userClaims).access_token;
                 var newRefreshToken = GenerateRefreshToken();
-                await _tokenService.SaveRefreshToken(user.Id, newRefreshToken);
+                await _tokenService.SaveRefreshToken(user.Id, Request.Headers.UserAgent.ToString(), newRefreshToken);
                 _logger.LogInformation("Обновление токена пользователя {0}", login);
 
                 return Ok(new AuthResponse { Token = token, RefreshToken = newRefreshToken });
@@ -133,13 +135,14 @@ namespace WebAPI.Controllers
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout(LogoutRequest logout)
         {
+            var userAgent = Request.Headers.UserAgent.ToString(); ;
             Console.WriteLine($"Выход: {logout.Login}");
             var errorMessage = "";
-            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
+            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshTokens).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
 
-            _context.EmployeeRefreshTokens.Remove(acc.EmployeeRefreshToken);
-           // acc.EmployeeRefreshToken.RefreshToken = null;
-           // acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
+            acc.EmployeeRefreshTokens.Remove(acc.EmployeeRefreshTokens.FirstOrDefault(p => p.UserAgent.Equals(userAgent)));
+            // acc.EmployeeRefreshToken.RefreshToken = null;
+            // acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
             await _context.SaveChangesAsync();
             //await _signInManager.SignOutAsync();
 

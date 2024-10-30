@@ -21,6 +21,6 @@ namespace Entities
         public int RoleId { get; set; }
         public virtual Role? Role { get; set; }
         public virtual Employee? Employee { get; set; }
-        public virtual EmployeeRefreshToken EmployeeRefreshToken { get; set; }
+        public virtual List<EmployeeRefreshToken> EmployeeRefreshTokens { get; set; }
     }
 }

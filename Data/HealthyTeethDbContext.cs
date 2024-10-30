@@ -79,13 +79,13 @@ namespace Data
 
             modelBuilder.Entity<EmployeeRefreshToken>(entity =>
             {
-                entity.HasKey(p => p.EmployeeId);
+                entity.HasKey(p => p.Id);
                 entity.Property(p => p.RefreshTokenExpiryDate).HasColumnType("date");
                 entity.Property(p => p.RefreshToken).HasColumnType("text");
                 entity.HasOne(p => p.Account)
-                      .WithOne(p => p.EmployeeRefreshToken)
+                      .WithMany(p => p.EmployeeRefreshTokens)
                       .HasConstraintName("FK_Employee_RefreshToken")
-                      .HasForeignKey<EmployeeRefreshToken>(p => p.EmployeeId)
+                      .HasForeignKey(p => p.EmployeeId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 

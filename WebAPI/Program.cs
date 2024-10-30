@@ -109,7 +109,7 @@ try
 
         app.UseSerilogRequestLogging(options =>
         {
-            options.MessageTemplate = "Пользователь {UserName} ({ClientIp}:{ClientPort}) перешёл по {RequestMethod} на {RequestPath} статус {StatusCode} за {Elapsed:0.0000} сек";
+            options.MessageTemplate = "Пользователь {UserName} ({ClientIp}:{ClientPort}) (UserAgent: {UserAgent}) перешёл по {RequestMethod} на {RequestPath} статус {StatusCode} за {Elapsed:0.0000} мс";
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 
@@ -131,6 +131,7 @@ try
                 diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
                 diagnosticContext.Set("ClientIp", httpContext.Connection?.RemoteIpAddress);
                 diagnosticContext.Set("ClientPort", httpContext.Connection?.RemotePort);
+                diagnosticContext.Set("UserAgent", httpContext.Request?.Headers.UserAgent.ToString());
             };
         });
     }
@@ -138,7 +139,7 @@ try
     {
         app.UseSerilogRequestLogging(options =>
         {
-            options.MessageTemplate = "Пользователь {UserName} ({ClientIp}:{ClientPort}) перешёл по {RequestMethod} на {RequestPath} со статусом {StatusCode} за {Elapsed:0.0000} сек";
+            options.MessageTemplate = "Пользователь {UserName} ({ClientIp}:{ClientPort}) (UserAgent: {UserAgent}) перешёл по {RequestMethod} на {RequestPath} статус {StatusCode} за {Elapsed:0.0000} мс";
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 if (httpContext.Request.Method == "OPTIONS")
