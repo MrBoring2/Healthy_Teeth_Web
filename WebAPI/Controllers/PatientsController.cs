@@ -7,6 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Entities;
 using Data;
+using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
+using WebAPI.SignalR;
+using Shared.DTO;
+using Shared.Models;
+using WebAPI.Filters;
+using WebAPI.Helpers;
 
 namespace WebAPI.Controllers
 {
@@ -14,32 +21,76 @@ namespace WebAPI.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly HealthyTeethDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<PatientsController> _logger;
 
-        public PatientsController(HealthyTeethDbContext context)
+        public PatientsController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<PatientsController> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
         // GET: api/Patients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
         {
-            return await _context.Patients.ToListAsync();
+            var orderBySplit = orderBy?.Split(' ');
+
+            PatientFilter filter;
+            try
+            {
+                filter = new PatientFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+            if (orderBySplit == null)
+            {
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Patient> patients;
+
+            if (filter.OrderDirection == "asc")
+            {
+                patients = _context.Patients
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
+            }
+            else
+            {
+                patients = _context.Patients
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
+            }
+
+            var count = patients.Count();
+
+            patients = patients.Skip(filter.Skip).Take(filter.Top);
+
+            return new DataServiceResult<PatientDTO>(_mapper.Map<IEnumerable<PatientDTO>>(patients), count);
         }
 
         // GET: api/Patients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<PatientDTO>> GetPatient(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
-            return patient;
+            return Ok(_mapper.Map<PatientDTO>(patient));
         }
 
         // PUT: api/Patients/5
@@ -76,12 +127,25 @@ namespace WebAPI.Controllers
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<Patient>> PostPatient(PatientDTO patient)
         {
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
+            return BadRequest();
+            //var dbPatient = new Patient()
+            //{
+            //    FirstName = employee.FirstName,
+            //    LastName = employee.LastName,
+            //    MiddleName = employee.MiddleName,
+            //    DateOfBirth = employee.DateOfBirth,
+            //    Gender = employee.Gender,
+            //    Phone = employee.Phone,
+            //    SpecializationId = employee.SpecializationId,
+            //};
+            //_context.Employees.Add(dbPatient);
+            //await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPatient", new { id = patient.Id }, patient);
+            //await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
+
+            //return CreatedAtAction("GetEmployee", new { id = dbPatient.Id }, dbPatient);
         }
 
         // DELETE: api/Patients/5

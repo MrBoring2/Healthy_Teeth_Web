@@ -45,5 +45,6 @@ namespace Shared.DTO
         [MaxLength(16)]
         public string MedicalPolicy { get; set; }
         public virtual List<VisitDTO>? Visits { get; set; }
+        public string Passport => PassportNumber + " " + PassportCode;
     }
 }

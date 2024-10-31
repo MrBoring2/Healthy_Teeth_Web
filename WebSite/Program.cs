@@ -40,6 +40,7 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddTransient<IEmployeeApiService, EmployeeApiService>();
 builder.Services.AddTransient<IRoleApiService, RoleApiService>();
 builder.Services.AddTransient<IServiceApiService, ServiceApiService>();
+builder.Services.AddTransient<IPatientApiService, PatientApiService>();
 builder.Services.AddTransient<ISpecializationApiService, SpecializationApiService>();
 builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped(
