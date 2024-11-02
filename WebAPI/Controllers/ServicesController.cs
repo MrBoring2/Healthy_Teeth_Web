@@ -13,6 +13,8 @@ using Shared.DTO;
 using AutoMapper;
 using Shared.Models;
 using WebAPI.SignalR;
+using WebAPI.Filters;
+using WebAPI.Helpers;
 
 namespace WebAPI.Controllers
 {
@@ -34,10 +36,47 @@ namespace WebAPI.Controllers
         // GET: api/Services
         [Authorize]
         [HttpGet]
-        public async Task<DataServiceResult<ServiceDTO>> GetServices()
+        public async Task<ActionResult<DataServiceResult<ServiceDTO>>> GetServices(string? search, string? orderBy, string top, string skip)
         {
-            var services = await _context.Services.Include(p => p.Specialization).ToListAsync();
-            return new (_mapper.Map<IEnumerable<ServiceDTO>>(services), services.Count);
+            var orderBySplit = orderBy?.Split(' ');
+
+            ServiceFilter filter;
+            try
+            {
+                filter = new ServiceFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+            if (orderBySplit == null)
+            {
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Service> services;
+
+            if (filter.OrderDirection == "asc")
+            {
+                services = _context.Services
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
+            }
+            else
+            {
+                services = _context.Services
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
+            }
+
+            var count = services.Count();
+
+            services = services.Skip(filter.Skip).Take(filter.Top);
+
+            return new DataServiceResult<ServiceDTO>(_mapper.Map<IEnumerable<ServiceDTO>>(services), count);
         }
 
         // GET: api/Services/5
@@ -45,28 +84,31 @@ namespace WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Service>> GetService(int id)
         {
-            var service = await _context.Services.FindAsync(id);
+            var service = await _context.Services.FirstOrDefaultAsync(p => p.Id == id);
 
             if (service == null)
             {
                 return NotFound();
             }
 
-            return service;
+            return Ok(_mapper.Map<ServiceDTO>(service));
         }
 
         // PUT: api/Services/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutService(int id, Service service)
+        public async Task<IActionResult> PutService(int id, ServiceDTO service)
         {
             if (id != service.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(service).State = EntityState.Modified;
+            var serviceDb = await _context.Services.FirstOrDefaultAsync(p => p.Id == id);
+            serviceDb.Title = service.Title;
+            serviceDb.Price = service.Price;
+            serviceDb.SpecializationId = service.SpecializationId;
 
             try
             {
@@ -83,15 +125,15 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
+            await _hubContext.Clients.Group("Администратор").ServicesChanged("Успешно");
+            return Ok();
         }
 
         // POST: api/Services
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Service>> PostService(ServiceViewModel service)
+        public async Task<ActionResult<ServiceDTO>> PostService(ServiceViewModel service)
         {
             var serviceDb = new Service
             {
@@ -102,7 +144,7 @@ namespace WebAPI.Controllers
             _context.Services.Add(serviceDb);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").ServiceAdded("Успешно");
+            await _hubContext.Clients.Group("Администратор").ServicesChanged("Успешно");
 
             return CreatedAtAction("GetService", new { id = service.Id }, service);
         }

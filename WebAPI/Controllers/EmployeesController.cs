@@ -175,7 +175,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
+            await _hubContext.Clients.Group("Администратор").EmployeesChagned("Успешно");
             return Ok();
         }
 
@@ -207,7 +207,7 @@ namespace WebAPI.Controllers
             _context.Employees.Add(dbEmployee);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
+            await _hubContext.Clients.Group("Администратор").EmployeesChagned("Успешно");
 
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }

@@ -7,6 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Entities;
 using Data;
+using Humanizer;
+using Shared.DTO;
+using Shared.Models;
+using WebAPI.Filters;
+using WebAPI.Helpers;
+using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
+using WebAPI.SignalR;
 
 namespace WebAPI.Controllers
 {
@@ -14,45 +22,94 @@ namespace WebAPI.Controllers
     [ApiController]
     public class VisitsController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
+        private readonly IMapper _mapper;
         private readonly HealthyTeethDbContext _context;
 
-        public VisitsController(HealthyTeethDbContext context)
+        public VisitsController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
         {
             _context = context;
+            _mapper = mapper;
+            _hubContext = hubContext;
         }
 
         // GET: api/Visits
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Visit>>> GetVisits()
+        public async Task<ActionResult<DataServiceResult<VisitDTO>>> GetVisits(string? search, string? orderBy, string top, string skip)
         {
-            return await _context.Visits.ToListAsync();
+            var orderBySplit = orderBy?.Split(' ');
+
+            VisitFilter filter;
+            try
+            {
+                filter = new VisitFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+            if (orderBySplit == null)
+            {
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Visit> visits;
+
+            if (filter.OrderDirection == "asc")
+            {
+                visits = _context.Visits
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
+            }
+            else
+            {
+                visits = _context.Visits
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
+            }
+
+            var count = visits.Count();
+
+            visits = visits.Skip(filter.Skip).Take(filter.Top);
+
+            return new DataServiceResult<VisitDTO>(_mapper.Map<IEnumerable<VisitDTO>>(visits), count);
         }
 
         // GET: api/Visits/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Visit>> GetVisit(int id)
         {
-            var visit = await _context.Visits.FindAsync(id);
+            var visit = await _context.Visits.FirstOrDefaultAsync(p => p.Id == id);
 
             if (visit == null)
             {
                 return NotFound();
             }
 
-            return visit;
+            return Ok(_mapper.Map<VisitDTO>(visit));
         }
 
         // PUT: api/Visits/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutVisit(int id, Visit visit)
+        public async Task<IActionResult> PutVisit(int id, VisitDTO visit)
         {
             if (id != visit.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(visit).State = EntityState.Modified;
+            var visitDb = await _context.Visits.FirstOrDefaultAsync(p => p.Id == id);
+            visitDb.VisitPurpose = visit.VisitPurpose;
+            visitDb.VisitDiagnos = visit.VisitDiagnos;
+            visitDb.VisitObjectively = visit.VisitObjectively;
+            visitDb.VisitDate = visit.VisitDate;
+            visitDb.VisitStatusId = visit.VisitStatusId;
+            visitDb.EmployeeId = visit.EmployeeId;
+            visitDb.VisirtTime = visit.VisirtTime;
 
             try
             {
@@ -69,17 +126,29 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
+            await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
+            return Ok();
         }
 
         // POST: api/Visits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Visit>> PostVisit(Visit visit)
+        public async Task<ActionResult<Visit>> PostVisit(VisitDTO visit)
         {
-            _context.Visits.Add(visit);
+            var visitDb = new Visit
+            {
+                EmployeeId = visit.EmployeeId,
+                PatientId = visit.PatientId,
+                VisirtTime = visit.VisirtTime,
+                VisitDate = visit.VisitDate,
+                VisitPurpose = visit.VisitPurpose,
+                VisitStatusId = visit.VisitStatusId
+
+            };
+            _context.Visits.Add(visitDb);
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
 
             return CreatedAtAction("GetVisit", new { id = visit.Id }, visit);
         }

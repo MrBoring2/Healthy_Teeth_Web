@@ -2,9 +2,9 @@
 {
     public interface IMainHub
     {
-        Task ServiceAdded(string mes);
-        Task ServiceUpdated(string mes);
-        Task EmployeeAdded(string mes);
-        Task EmployeeUpdated(string mes);
+        Task ServicesChanged(string mes);
+        Task EmployeesChagned(string mes);
+        Task VisitsChanged(string mes);
+        Task PatientsChanged(string mes);
     }
 }

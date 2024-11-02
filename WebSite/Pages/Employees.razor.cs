@@ -77,7 +77,7 @@ namespace WebSite.Pages
 
             count = 10;
 
-            HubConnection.On<string>("EmployeeAdded", async mes =>
+            HubConnection.On<string>("EmployeesChagned", async mes =>
             {
                 await LoadData(lastArgs);
             });

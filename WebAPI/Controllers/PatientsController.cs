@@ -36,7 +36,7 @@ namespace WebAPI.Controllers
 
         // GET: api/Patients
         [HttpGet]
-        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
+        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? search, string? orderBy, string top, string skip)
         {
             var orderBySplit = orderBy?.Split(' ');
 
@@ -96,14 +96,25 @@ namespace WebAPI.Controllers
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutPatient(int id, PatientDTO patient)
         {
             if (id != patient.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(patient).State = EntityState.Modified;
+            var patientDb = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
+            patientDb.FirstName = patient.FirstName;
+            patientDb.LastName = patient.LastName;
+            patientDb.MiddleName = patient.MiddleName;
+            patientDb.DateOfBirth = patient.DateOfBirth;
+            patientDb.Gender = patient.Gender;
+            patientDb.Phone = patient.Phone;
+            patientDb.Address = patient.Address;
+            patientDb.City = patient.City;
+            patientDb.PassportNumber = patient.PassportNumber;
+            patientDb.PassportCode = patient.PassportCode;
+            patientDb.MedicalPolicy = patient.MedicalPolicy;
 
             try
             {
@@ -120,8 +131,8 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
+            await _hubContext.Clients.Group("Администратор").PatientsChanged("Успешно");
+            return Ok();
         }
 
         // POST: api/Patients
@@ -129,23 +140,27 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patient)
         {
-            return BadRequest();
-            //var dbPatient = new Patient()
-            //{
-            //    FirstName = employee.FirstName,
-            //    LastName = employee.LastName,
-            //    MiddleName = employee.MiddleName,
-            //    DateOfBirth = employee.DateOfBirth,
-            //    Gender = employee.Gender,
-            //    Phone = employee.Phone,
-            //    SpecializationId = employee.SpecializationId,
-            //};
-            //_context.Employees.Add(dbPatient);
-            //await _context.SaveChangesAsync();
 
-            //await _hubContext.Clients.Group("Администратор").EmployeeAdded("Успешно");
+            var dbPatient = new Patient()
+            {
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                MiddleName = patient.MiddleName,
+                DateOfBirth = patient.DateOfBirth,
+                Gender = patient.Gender,
+                Phone = patient.Phone,
+                Address = patient.Address,
+                City = patient.City,
+                MedicalPolicy = patient.MedicalPolicy,
+                PassportCode = patient.PassportCode,
+                PassportNumber = patient.PassportNumber
+              };
+            _context.Patients.Add(dbPatient);
+            await _context.SaveChangesAsync();
 
-            //return CreatedAtAction("GetEmployee", new { id = dbPatient.Id }, dbPatient);
+            await _hubContext.Clients.Group("Администратор").PatientsChanged("Успешно");
+
+            return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
         }
 
         // DELETE: api/Patients/5
