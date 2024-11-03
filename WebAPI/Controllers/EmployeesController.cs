@@ -175,7 +175,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").EmployeesChagned("Успешно");
+            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
             return Ok();
         }
 
@@ -207,7 +207,7 @@ namespace WebAPI.Controllers
             _context.Employees.Add(dbEmployee);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").EmployeesChagned("Успешно");
+            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
 
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }
@@ -216,11 +216,14 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees.Include(p => p.Visits).FirstOrDefaultAsync(p => p.Id == id);
             if (employee == null)
             {
                 return NotFound();
             }
+
+            if (employee.Visits.Count > 0)
+                return BadRequest("Сотрудник имеет записи в посещениях");
 
             try
             {
@@ -231,8 +234,8 @@ namespace WebAPI.Controllers
             {
                 return BadRequest("Не удалось удалить пользователя: " + ex.Message);
             }
-
-            return NoContent();
+            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
+            return Ok();
         }
 
         private bool EmployeeExists(int id)

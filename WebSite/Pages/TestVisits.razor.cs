@@ -21,6 +21,16 @@ namespace WebSite.Pages
         [Inject]
         private ISpecializationApiService SpeciazaizationApiService { get; set; }
         public List<Dictionary<string, ScheduleRegister>> Data { get; set; }
+        private string dispalyedDate;
+        public string DisplayedDate
+        {
+            get => dispalyedDate;
+            set
+            {
+                dispalyedDate = value;
+                StateHasChanged();
+            }
+        }
         private SpecializationDTO selectedSpecialization;
 
         private IList<EmployeeDTO> selectedEmployees;
@@ -44,6 +54,7 @@ namespace WebSite.Pages
             set
             {
                 selectedDate = value;
+                DisplayedDate = SelectedDate.ToShortDateString() + ", " + CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.GetDayName(SelectedDate.DayOfWeek);
                 LoadTable(lastArgs);
             }
         }
@@ -73,6 +84,7 @@ namespace WebSite.Pages
         protected override async Task OnInitializedAsync()
         {
             selectedDate = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+            DisplayedDate = SelectedDate.ToShortDateString() + ", " + CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.GetDayName(SelectedDate.DayOfWeek);
             await LoadSpecializations();
         }
 
@@ -87,7 +99,7 @@ namespace WebSite.Pages
             var tempCount = Employees?.Count;
             Employees = response.Content.ToList();
 
-            Console.WriteLine("Выбрано:"  + SelectedEmployees?.Count);
+            Console.WriteLine("Выбрано:" + SelectedEmployees?.Count);
             if (SelectedEmployees == null || SelectedEmployees?.Count == 0 || Employees.Count != tempCount)
             {
                 Console.WriteLine("Стандарт");
@@ -204,7 +216,7 @@ namespace WebSite.Pages
                 {
                     //args.Attributes.Add("style", $"background-color: var(--rz-base-300)");
                 }
-                else if (d.StartTime != null && d.EndTime != null)
+                else if (d.StartTime <= d.TargetTime && d.EndTime.Value.AddMinutes(-30) >= d.TargetTime)
                 {
                     //args.Attributes.Add("style", $"background-color: {(d.StartTime <= d.TargetTime && d.EndTime >= d.TargetTime ? "var(--rz-info-light)" : "var(--rz-base-background-color)")};");
                     args.Attributes.Add("style", $"background-color: var(--rz-info-light)");

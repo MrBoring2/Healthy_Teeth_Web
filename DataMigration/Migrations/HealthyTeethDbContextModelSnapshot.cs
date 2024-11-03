@@ -50,7 +50,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Employee", b =>
@@ -102,7 +102,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("SpecializationId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Entities.EmployeeRefreshToken", b =>
@@ -129,7 +129,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("EmployeeRefreshTokens");
+                    b.ToTable("EmployeeRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Patient", b =>
@@ -201,7 +201,7 @@ namespace DataMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Patients");
+                    b.ToTable("Patients", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Role", b =>
@@ -219,7 +219,7 @@ namespace DataMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Schedule", b =>
@@ -249,7 +249,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("Schedules", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Service", b =>
@@ -277,7 +277,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("Entities.ServiceToVisit", b =>
@@ -295,7 +295,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("VisitId");
 
-                    b.ToTable("ServiceToVisits");
+                    b.ToTable("ServiceToVisits", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Specialization", b =>
@@ -313,7 +313,7 @@ namespace DataMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Specializations");
+                    b.ToTable("Specializations", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Visit", b =>
@@ -362,7 +362,7 @@ namespace DataMigration.Migrations
 
                     b.HasIndex("VisitStatusId");
 
-                    b.ToTable("Visits");
+                    b.ToTable("Visits", (string)null);
                 });
 
             modelBuilder.Entity("Entities.VisitStatus", b =>
@@ -380,7 +380,7 @@ namespace DataMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VisitStatuses");
+                    b.ToTable("VisitStatuses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Account", b =>

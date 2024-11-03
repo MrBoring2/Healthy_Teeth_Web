@@ -15,6 +15,7 @@ using WebAPI.Helpers;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using WebAPI.SignalR;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebAPI.Controllers
 {
@@ -32,7 +33,7 @@ namespace WebAPI.Controllers
             _mapper = mapper;
             _hubContext = hubContext;
         }
-
+        [Authorize]
         // GET: api/Visits
         [HttpGet]
         public async Task<ActionResult<DataServiceResult<VisitDTO>>> GetVisits(string? search, string? orderBy, string top, string skip)
@@ -77,7 +78,7 @@ namespace WebAPI.Controllers
 
             return new DataServiceResult<VisitDTO>(_mapper.Map<IEnumerable<VisitDTO>>(visits), count);
         }
-
+        [Authorize]
         // GET: api/Visits/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Visit>> GetVisit(int id)
@@ -91,7 +92,7 @@ namespace WebAPI.Controllers
 
             return Ok(_mapper.Map<VisitDTO>(visit));
         }
-
+        [Authorize]
         // PUT: api/Visits/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -129,7 +130,7 @@ namespace WebAPI.Controllers
             await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
             return Ok();
         }
-
+        [Authorize]
         // POST: api/Visits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -152,7 +153,7 @@ namespace WebAPI.Controllers
 
             return CreatedAtAction("GetVisit", new { id = visit.Id }, visit);
         }
-
+        [Authorize]
         // DELETE: api/Visits/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVisit(int id)

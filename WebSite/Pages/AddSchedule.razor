@@ -1,9 +1,11 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@attribute [Authorize(Roles = "Администратор")]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using WebSite.Models
 <h1>Карточка сотрудника</h1>
 <hr />
 <CascadingAuthenticationState>
-    <AuthorizeView>
+    <AuthorizeView Roles="Администратор">
         <Authorized>
             <EditForm Model="@schedule" Context="editContext">
                 <RadzenStack>
@@ -21,7 +23,7 @@
                     </RadzenFormField>
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton Text="Сохранить" Click="@SaveSchedule" />
-                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+                        <RadzenButton Click="@((args) => DialogService.Close(null))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
                     </RadzenStack>
                 </RadzenStack>
             </EditForm>

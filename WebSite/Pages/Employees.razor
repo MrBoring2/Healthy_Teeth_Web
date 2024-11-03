@@ -1,17 +1,20 @@
-﻿@page "/employees"
+﻿@attribute [Authorize(Roles = "Регистратор, Администратор")]
+@page "/employees"
 @using Entities
+@using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
 @using Shared.DTO
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Сотрудники</PageTitle>
-
-<RadzenText TextStyle="TextStyle.H2">Список сотрудников</RadzenText>
-
 <CascadingAuthenticationState>
-    <AuthorizeView>
+    <AuthorizeView Roles="Регистратор,Администратор">
         <Authorized>
+            <PageTitle>Сотрудники</PageTitle>
+
+            <RadzenText TextStyle="TextStyle.H2">Список сотрудников</RadzenText>
+
+
             <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
                 <HeaderTemplate>
                     <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
@@ -25,17 +28,17 @@
                         </RadzenFormField>
                         <RadzenFormField Text="Роли">
                             <RadzenDropDown @bind-Value=@SelectedRoles Data=@Roles TextProperty="@nameof(RoleDTO.Title)" Name="DropDownMultipleChips"
-                                            Multiple=true AllowClear=true Placeholder="Выберите роли" Chips=true Style="width: 100%; max-width: 400px;"  SelectedItemsText="элементов выбрано" />
+                                            Multiple=true AllowClear=true Placeholder="Выберите роли" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано" />
                         </RadzenFormField>
                         <RadzenFormField Text="Специализации">
                             <RadzenDropDown @bind-Value=@SelectedSpecializations Data=@Specializations TextProperty="@nameof(SpecializationDTO.Title)" Name="DropDownMultipleChips"
-                                            Multiple=true AllowClear=true Placeholder="Выберите специализации" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано"  />
+                                            Multiple=true AllowClear=true Placeholder="Выберите специализации" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано" />
                         </RadzenFormField>
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>
             <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedEmployees SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData 
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="EmployeeDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
                 <HeaderTemplate>
                     <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow" />
@@ -50,14 +53,16 @@
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Role.Title" Title="Роль" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Login" Title="Логин" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.GenderName" Title="Пол" Width="100px" />
-                    <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
-                        <Template Context="employee">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditEmployeeWindow(employee.Id))" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
-                            </RadzenButton>
-                        </Template>
-                    </RadzenDataGridColumn>
+                    <AuthorizeView Roles="Администратор" Context="innerContext">
+                        <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="employee">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditEmployeeWindow(employee.Id))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => DeleteEmployee(employee.Id))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </AuthorizeView>
                 </Columns>
                 <LoadingTemplate>
                     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
@@ -66,5 +71,6 @@
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
+
 
 

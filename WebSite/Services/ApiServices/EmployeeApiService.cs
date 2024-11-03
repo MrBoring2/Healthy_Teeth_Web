@@ -17,6 +17,7 @@ namespace WebSite.Services.ApiServices
         Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetForScheduleAsync(Dictionary<string, string> queryParameters);
         Task<ResponseModel<string>> PostAsync(object data);
         Task<ResponseModel<string>> PutAsync(int id, object data);
+        Task<ResponseModel<string>> DeleteAsync(int id);
     }
     public class EmployeeApiService : IEmployeeApiService
     {
@@ -129,6 +130,22 @@ namespace WebSite.Services.ApiServices
             {
                 Console.WriteLine(ex.Message);
                 return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
+            }
+        }
+
+        public async Task<ResponseModel<string>> DeleteAsync(int id)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.DeleteAsync($"api/employees/{id}");
+                var responseObject = await response.Content.ReadAsStringAsync();
+                return new ResponseModel<string>(response.StatusCode, responseObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Произошла ошибка: " + ex.Message);
+                return new ResponseModel<string>(System.Net.HttpStatusCode.BadRequest, ex.Message);
             }
         }
     }

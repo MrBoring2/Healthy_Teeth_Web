@@ -1,13 +1,14 @@
-﻿@inject DialogService DialogService
+﻿@attribute [Authorize(Roles = "Регистратор, Администратор")]
 @page "/visits"
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Shared.DTO
 @using WebSite.Models
 
 <CascadingAuthenticationState>
-    <AuthorizeView Context="another2">
+    <AuthorizeView Context="another2" Roles="Регистратор, Администратор">
         <Authorized>
-            <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenStack Orientation="Orientation.Horizontal" class="rz-my-3">
                 <RadzenFormField Text="Дата">
                     <RadzenDatePicker @bind-Value="@SelectedDate" />
                 </RadzenFormField>
@@ -18,6 +19,7 @@
                     <RadzenDropDown @bind-Value="SelectedEmployees" Data="@Employees" Multiple=true TextProperty="@nameof(EmployeeDTO.FullName)" />
                 </RadzenFormField>
             </RadzenStack>
+            <RadzenText Text="@DisplayedDate" TextAlign="TextAlign.Center" TextStyle="TextStyle.H5" />
             <RadzenDataGrid Data="@Data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellClick="@OnCellClick"
                             CellRender="OnCellRender" IsLoading="@IsLoading" LoadData=@LoadTable>
                 <EmptyTemplate>

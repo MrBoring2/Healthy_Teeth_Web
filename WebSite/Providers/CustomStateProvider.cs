@@ -55,5 +55,17 @@ namespace WebSite.Providers
 
             return result;
         }
+        public async Task<LogoutResponse> LogoutAllAsync()
+        {
+            var result = await _authHttpService.LogoutAllAsync();
+            if (result.Success)
+            {
+                var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
+                var authState = Task.FromResult(new AuthenticationState(anonymousUser));
+                NotifyAuthenticationStateChanged(authState);
+            }
+
+            return result;
+        }
     }
 }

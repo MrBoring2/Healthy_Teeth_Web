@@ -14,6 +14,9 @@ namespace WebSite.Pages
         [Inject]
         private DialogService DialogService { get; set; }
         [Inject]
+        private NotificationService NotificationService { get; set; }
+        [Inject]
+
         private IPatientApiService PatientApiService { get; set; }
         private ODataEnumerable<PatientDTO> list;
         private IList<PatientDTO> SelectedPatients { get; set; }
@@ -43,7 +46,7 @@ namespace WebSite.Pages
 
             count = 10;
 
-            HubConnection.On<string>("PatientAdded", async mes =>
+            HubConnection.On<string>("PatientsChanged", async mes =>
             {
                 await LoadData(lastArgs);
             });
@@ -111,10 +114,37 @@ namespace WebSite.Pages
             isLoading = false;
             StateHasChanged();
         }
-        
+        public async Task DeletePatient(int id)
+        {
+            var confirm = await DialogService.Confirm("Подтвердите удаление пациента", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
+            if (confirm == true)
+            {
+                var response = await PatientApiService.DeleteAsync(id);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = "Пациент успешно удалён"
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = response.Content
+                    });
+                }
+            }
+        }
         public async Task OpenPatientWindow()
         {
-            await DialogService.OpenAsync<AddEmployee>($"Добавление",
+            await DialogService.OpenAsync<AddPatient>($"Добавление",
                new Dictionary<string, object>() { { "PatientId", 0 } },
                new DialogOptions()
                {
@@ -129,7 +159,7 @@ namespace WebSite.Pages
 
         public async Task OpenEditPatientWindow(int id)
         {
-            await DialogService.OpenAsync<AddEmployee>($"Редактирование",
+            await DialogService.OpenAsync<AddPatient>($"Редактирование",
              new Dictionary<string, object>() { { "PatientId", id } },
              new DialogOptions()
              {

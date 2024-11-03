@@ -94,7 +94,7 @@ try
     {
         policy.AddPolicy("_myAllowSpecificOrigins", builder =>
         builder.WithOrigins("https://localhost:8084", "http://localhost:8083", "http://localhost:5107")
-            .WithMethods("GET", "POST", "PUT")
+            .WithMethods("GET", "POST", "PUT", "DELETE")
             .AllowAnyHeader()
             .AllowCredentials());
     });

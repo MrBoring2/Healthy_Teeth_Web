@@ -120,7 +120,7 @@ namespace WebSite.Pages
                     employee.Password = "";
                     if (response.Content.Schedules == null)
                         schedules = new ObservableCollection<ScheduleDTO>();
-                    else schedules = new ObservableCollection<ScheduleDTO>(response.Content.Schedules);
+                    else schedules = new ObservableCollection<ScheduleDTO>(response.Content.Schedules.OrderBy(p => (p.Weekday + 6) % 7));
                 }
             }
         }
@@ -145,6 +145,8 @@ namespace WebSite.Pages
                   Width = "300px",
                   Height = "500px"
               });
+            if (schedule == null)
+                return;
 
             if (schedules.FirstOrDefault(p => p.Weekday == schedule.Weekday) != null)
             {

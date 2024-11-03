@@ -131,7 +131,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout(LogoutRequest logout)
         {
@@ -146,6 +146,29 @@ namespace WebAPI.Controllers
             await _context.SaveChangesAsync();
             //await _signInManager.SignOutAsync();
 
+
+            var result = new LogoutResponse()
+            {
+                Success = true,
+                ErrorMessage = errorMessage
+            };
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpPost("LogoutAll")]
+        public async Task<IActionResult> LogoutAll(LogoutRequest logout)
+        {
+            var userAgent = Request.Headers.UserAgent.ToString(); ;
+            Console.WriteLine($"Выход: {logout.Login}");
+            var errorMessage = "";
+            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshTokens).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
+
+            acc.EmployeeRefreshTokens = null;
+            await _context.SaveChangesAsync();
 
             var result = new LogoutResponse()
             {

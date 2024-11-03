@@ -1,0 +1,64 @@
+﻿@attribute [Authorize(Roles = "Администратор, Регистратор")]
+@using Entities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
+@using Shared.Models
+@using WebSite.Models
+@using WebSite.Providers
+@using WebSite.Services
+@* @page "/" *@
+@inject NavigationManager NavigationManager
+<h1>Карточка пациента</h1>
+<hr />
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Администратор, Регистратор">
+        <Authorized>
+            <EditForm Model="@patient" Context="editContext" OnValidSubmit="SaveUser">
+                <RadzenStack>
+                    <RadzenFormField Text="Фамилия">
+                        <RadzenTextBox Placeholder="Фамилия" @bind-Value="@patient.FirstName" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Имя">
+                        <RadzenTextBox Placeholder="Имя" @bind-Value="@patient.MiddleName" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Отчество">
+                        <RadzenTextBox Placeholder="Отчество" @bind-Value="@patient.LastName" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Телефон">
+                        <RadzenTextBox Placeholder="Телефон" @bind-Value="@patient.Phone" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Номер паспорта">
+                        <RadzenTextBox Placeholder="Номер паспорта" @bind-Value="@patient.PassportNumber" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Серия паспорта">
+                        <RadzenTextBox Placeholder="Серия паспорта" @bind-Value="@patient.PassportCode" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Медицинский полис">
+                        <RadzenTextBox Placeholder="Медицинский полис" @bind-Value="@patient.MedicalPolicy" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Пол">
+                        <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@patient.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Дата рождения">
+                        <RadzenDatePicker Placeholder="Дата рождения" DateFormat="dd.MM.yyyy" @bind-Value="@patient.DateOfBirth" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Город">
+                        <RadzenTextBox Placeholder="Город" @bind-Value="@patient.City" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Адрес">
+                        <RadzenTextBox Placeholder="Адрес" @bind-Value="@patient.Address" />
+                    </RadzenFormField>                
+
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" Click="@SaveUser" />
+                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </EditForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+@code {
+
+}

@@ -18,6 +18,8 @@ namespace WebSite.Pages
         [Inject]
         private DialogService DialogService { get; set; }
         [Inject]
+        private NotificationService NotificationService { get; set; }
+        [Inject]
         private IEmployeeApiService EmployeeApiService { get; set; }
         [Inject]
         private IRoleApiService RoleApiService { get; set; }
@@ -77,7 +79,7 @@ namespace WebSite.Pages
 
             count = 10;
 
-            HubConnection.On<string>("EmployeesChagned", async mes =>
+            HubConnection.On<string>("EmployeesChanged", async mes =>
             {
                 await LoadData(lastArgs);
             });
@@ -153,6 +155,34 @@ namespace WebSite.Pages
             Console.WriteLine(count);
             isLoading = false;
             StateHasChanged();
+        }
+        public async Task DeleteEmployee(int id)
+        {
+            var confirm = await DialogService.Confirm("Подтвердите удаление сотрудника", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
+            if (confirm == true)
+            {
+                var response = await EmployeeApiService.DeleteAsync(id);
+                if(response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success ,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = "Сотрудник успешно удалён"
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = response.Content
+                    });
+                }
+            }
         }
         private async Task LoadRoles()
         {

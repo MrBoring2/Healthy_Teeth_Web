@@ -1,4 +1,6 @@
-﻿@using Entities
+﻿@attribute [Authorize(Roles = "Администратор")]
+@using Entities
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Shared.DTO
 @using Shared.Models
@@ -10,7 +12,7 @@
 <h1>Карточка сотрудника</h1>
 <hr />
 <CascadingAuthenticationState>
-    <AuthorizeView>
+    <AuthorizeView Roles="Администратор">
         <Authorized>
             <EditForm Model="@employee" Context="editContext" OnValidSubmit="SaveUser">
                 <RadzenStack>
@@ -57,7 +59,7 @@
 
                     <RadzenDataGrid Data="@schedules" @ref="grid" KeyProperty="WeekdayName" SelectionMode="DataGridSelectionMode.Single" TItem="ScheduleDTO">
                         <HeaderTemplate>
-                            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@AddSchedule" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить расписание" Click="@AddSchedule" />
                         </HeaderTemplate>
                         <EmptyTemplate>
                             <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Нет расписания.</p>
@@ -78,7 +80,7 @@
 
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton Text="Сохранить" Click="@SaveUser" />
-                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
                     </RadzenStack>
                 </RadzenStack>
             </EditForm>

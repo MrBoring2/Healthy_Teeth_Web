@@ -25,7 +25,7 @@ namespace WebSite.Pages
                 new Weekday(4, "Четвер"),
                 new Weekday(5, "Пятница"),
                 new Weekday(6, "Суббота"),
-                new Weekday(7, "Воскресенье")
+                new Weekday(0, "Воскресенье")
             };
         }
 

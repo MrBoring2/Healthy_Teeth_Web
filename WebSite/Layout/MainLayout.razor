@@ -1,44 +1,53 @@
 ﻿@using Blazored.LocalStorage
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using WebSite.Providers
 @inherits LayoutComponentBase
 @inject ILocalStorageService _localStorageService
 @inject CustomStateProvider _authProvider
 
 <RadzenComponents />
-
-<RadzenLayout>
-    <RadzenHeader>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
-            <RadzenBreadCrumb>
-                <Template Context="item">
-                    <RadzenBadge Text="@item.Text" IsPill="true" />
-                </Template>
-                <ChildContent>
-                    <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
-                </ChildContent>
-            </RadzenBreadCrumb>
-        </RadzenStack>
-    </RadzenHeader>
-    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
-        <RadzenPanelMenu Style="width:245px">
-            <RadzenPanelMenuItem Click=OnItemClicked Text="Посещения" Path="visits" Icon="date_range" />
-            <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
-            <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />
-            <RadzenPanelMenuItem Click=OnItemClicked Text="Пациенты" Path="patients" Icon="description" />
-            <RadzenPanelMenuItem Text="Выход" Click="OnExitClicked" Icon="exit_to_app" />
-        </RadzenPanelMenu>
-    </RadzenSidebar>
-    <RadzenBody>
-        <div class="content px-4">
-            @Body
-        </div>
-    </RadzenBody>
-    <RadzenFooter>
-        <RadzenText>© ООО «Здоровые зубы», 2024-@DateTime.Now.Date.Year</RadzenText>
-        </RadzenFooter>
-    </RadzenLayout>
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenLayout>
+                <RadzenHeader>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                        <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+                        <RadzenBreadCrumb>
+                            <Template Context="item">
+                                <RadzenBadge Text="@item.Text" IsPill="true" />
+                            </Template>
+                            <ChildContent>
+                                <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
+                            </ChildContent>
+                        </RadzenBreadCrumb>
+                    </RadzenStack>
+                </RadzenHeader>
+                <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+                    <RadzenPanelMenu Style="width:245px">
+                        <AuthorizeView Roles="Администратор,Регистратор" Context="innerContext">
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="visits" Icon="date_range" />
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
+                        </AuthorizeView>
+                        <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />
+                        <RadzenPanelMenuItem Click=OnItemClicked Text="Пациенты" Path="patients" Icon="patient_list" />
+                        <RadzenPanelMenuItem Text="Выход" Click="OnExitClicked" Icon="exit_to_app" />
+                        <RadzenPanelMenuItem Text="Выход со всех сессий" Click="OnExitAllClicked" Icon="exit_to_app" />
+                    </RadzenPanelMenu>
+                </RadzenSidebar>
+                <RadzenBody>
+                    <div class="content px-4">
+                        @Body
+                    </div>
+                </RadzenBody>
+                <RadzenFooter>
+                    <RadzenText>© ООО «Здоровые зубы», 2024-@DateTime.Now.Date.Year</RadzenText>
+                    </RadzenFooter>
+                </RadzenLayout>
+            </Authorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
 
     @code {
 
@@ -59,7 +68,7 @@
         {
             Nagivation.NavigateTo("/login");
         }
-        if (Nagivation.Uri == "/" && (user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Администратор" || user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Регистратор"))
+        if ((user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Администратор" || user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Регистратор"))
         {
             Nagivation.NavigateTo("/visits");
         }
@@ -88,6 +97,12 @@
     private async Task OnExitClicked()
     {
         var result = await AuthStatePrivder.LogoutAsync();
+        if (result.Success)
+            Nagivation.NavigateTo("/login");
+    }
+    private async Task OnExitAllClicked()
+    {
+        var result = await AuthStatePrivder.LogoutAllAsync();
         if (result.Success)
             Nagivation.NavigateTo("/login");
     }

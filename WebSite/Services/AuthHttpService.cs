@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 using Shared.Models;
 using System.Net.Http.Json;
@@ -13,10 +14,12 @@ namespace WebSite.Services
     {
         protected HttpClient _httpClient;
         protected readonly ILocalStorageService _localStorage;
+        protected NavigationManager _navigationManager;
         private readonly static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        public AuthHttpService(IHttpClientFactory httpClient, ILocalStorageService localStorage)
+        public AuthHttpService(IHttpClientFactory httpClient, ILocalStorageService localStorage, NavigationManager nagivation)
         {
             _localStorage = localStorage;
+            _navigationManager = nagivation;
             _httpClient = httpClient.CreateClient("authapi");
         }
 
@@ -59,7 +62,7 @@ namespace WebSite.Services
             {
                 await _semaphore.WaitAsync();
                 try
-                {                 
+                {
                     accessToken = await _localStorage.GetItemAsync<string>("accessToken");
                     expTime = await GetExpirationTime(accessToken);
                     now = DateTime.UtcNow;
@@ -98,6 +101,13 @@ namespace WebSite.Services
 
             var response = await _httpClient.PostAsJsonAsync("api/Authentication/RefreshToken",
                  new RefreshTokenRequest { Token = token, RefreshToken = refreshToken });
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _navigationManager.NavigateTo("/login");
+            }
+
+
             var result = JsonConvert.DeserializeObject<AuthResponse>(await response.Content.ReadAsStringAsync());
 
             if (!response.IsSuccessStatusCode)
@@ -107,7 +117,7 @@ namespace WebSite.Services
 
             await _localStorage.SetItemAsync("accessToken", result.Token);
             await _localStorage.SetItemAsync("refreshToken", result.RefreshToken);
-          
+
             return result.Token;
         }
         public async Task<LoginResponse?> LoginAsync(LoginModel loginViewModel)
@@ -141,12 +151,37 @@ namespace WebSite.Services
                 var token = await _localStorage.GetItemAsync<string>("accessToken");
                 var claims = Utils.Utils.ParseClaimsFromJwt(token);
                 request.Login = claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
                 var response = await _httpClient.PostAsync("api/Authentication/Logout", new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, MediaTypeNames.Application.Json));
-                result = await Task.Run(async () => JsonConvert.DeserializeObject<LogoutResponse>(await response.Content.ReadAsStringAsync()));
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    result = JsonConvert.DeserializeObject<LogoutResponse>(await response.Content.ReadAsStringAsync());
+                    await SetAccessTokenAsync(null, null);
+                }
             }
             catch (Exception ex) { }
 
-            await SetAccessTokenAsync(null, null);
+            return result;
+        }
+        public async Task<LogoutResponse?> LogoutAllAsync()
+        {
+
+            LogoutRequest request = new LogoutRequest();
+            LogoutResponse result = null;
+            try
+            {
+                var token = await _localStorage.GetItemAsync<string>("accessToken");
+                var claims = Utils.Utils.ParseClaimsFromJwt(token);
+                request.Login = claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+                var response = await _httpClient.PostAsync("api/Authentication/LogoutAll", new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, MediaTypeNames.Application.Json));
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    result = JsonConvert.DeserializeObject<LogoutResponse>(await response.Content.ReadAsStringAsync());
+                    await SetAccessTokenAsync(null, null);
+                }
+            }
+            catch (Exception ex) { }
 
             return result;
         }

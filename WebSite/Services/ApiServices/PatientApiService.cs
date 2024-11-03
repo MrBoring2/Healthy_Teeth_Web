@@ -14,6 +14,7 @@ namespace WebSite.Services.ApiServices
         Task<ResponseModel<PatientDTO>> GetAsync(int id);
         Task<ResponseModel<string>> PostAsync(object data);
         Task<ResponseModel<string>> PutAsync(int id, object data);
+        Task<ResponseModel<string>> DeleteAsync(int id);
     }
     public class PatientApiService : IPatientApiService
     {
@@ -104,6 +105,21 @@ namespace WebSite.Services.ApiServices
             {
                 Console.WriteLine("Произошла ошибка: " + ex.Message);
                 return new ResponseModel<string>(response.StatusCode, ex.Message);
+            }
+        }
+        public async Task<ResponseModel<string>> DeleteAsync(int id)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.DeleteAsync($"api/patients/{id}");
+                var responseObject = await response.Content.ReadAsStringAsync();
+                return new ResponseModel<string>(response.StatusCode, responseObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Произошла ошибка: " + ex.Message);
+                return new ResponseModel<string>(System.Net.HttpStatusCode.BadRequest, ex.Message);
             }
         }
     }
