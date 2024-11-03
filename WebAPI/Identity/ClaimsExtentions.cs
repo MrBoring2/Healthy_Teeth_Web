@@ -13,6 +13,7 @@ namespace WebAPI.Identity
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Account.Login),
+                new Claim(ClaimTypes.GivenName, user.FullName),
                 new Claim(ClaimTypes.Role, user.Account.Role.Title)
             };
             //ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);

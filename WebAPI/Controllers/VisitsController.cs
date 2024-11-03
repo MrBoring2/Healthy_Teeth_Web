@@ -16,6 +16,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using WebAPI.SignalR;
 using Microsoft.AspNetCore.Authorization;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -33,8 +34,7 @@ namespace WebAPI.Controllers
             _mapper = mapper;
             _hubContext = hubContext;
         }
-        [Authorize]
-        // GET: api/Visits
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
         public async Task<ActionResult<DataServiceResult<VisitDTO>>> GetVisits(string? search, string? orderBy, string top, string skip)
         {
@@ -78,8 +78,7 @@ namespace WebAPI.Controllers
 
             return new DataServiceResult<VisitDTO>(_mapper.Map<IEnumerable<VisitDTO>>(visits), count);
         }
-        [Authorize]
-        // GET: api/Visits/5
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Visit>> GetVisit(int id)
         {
@@ -92,9 +91,7 @@ namespace WebAPI.Controllers
 
             return Ok(_mapper.Map<VisitDTO>(visit));
         }
-        [Authorize]
-        // PUT: api/Visits/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutVisit(int id, VisitDTO visit)
         {
@@ -130,9 +127,7 @@ namespace WebAPI.Controllers
             await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
             return Ok();
         }
-        [Authorize]
-        // POST: api/Visits
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpPost]
         public async Task<ActionResult<Visit>> PostVisit(VisitDTO visit)
         {

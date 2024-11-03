@@ -21,6 +21,7 @@ using WebAPI.Helpers;
 using Serilog;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -43,7 +44,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/Employees
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet]
         public async Task<ActionResult<DataServiceResult<EmployeeDTO>>> GetEmployees(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
         {
@@ -99,7 +100,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/Employees/5
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet("{id}")]
         public async Task<ActionResult<EmployeeDTO>> GetEmployee(int id)
         {
@@ -113,7 +114,7 @@ namespace WebAPI.Controllers
             return Ok(_mapper.Map<EmployeeDTO>(employee));
         }
 
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet("/api/Employees/ForSchedule")]
         public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetEmployeesForSchedule(string date, int specializationId)
         {
@@ -131,7 +132,7 @@ namespace WebAPI.Controllers
 
         // PUT: api/Employees/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEmployee(int id, EmployeeViewModel employee)
         {
@@ -181,7 +182,7 @@ namespace WebAPI.Controllers
 
         // POST: api/Employees
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
@@ -212,7 +213,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }
 
-        // DELETE: api/Employees/5
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {

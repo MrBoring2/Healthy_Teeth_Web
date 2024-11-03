@@ -1,4 +1,4 @@
-﻿@attribute [Authorize(Roles = "Регистратор, Администратор")]
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")]
 @page "/visits"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -6,7 +6,7 @@
 @using WebSite.Models
 
 <CascadingAuthenticationState>
-    <AuthorizeView Context="another2" Roles="Регистратор, Администратор">
+    <AuthorizeView Context="another2" Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")">
         <Authorized>
             <RadzenStack Orientation="Orientation.Horizontal" class="rz-my-3">
                 <RadzenFormField Text="Дата">

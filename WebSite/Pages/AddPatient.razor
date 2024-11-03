@@ -1,4 +1,4 @@
-﻿@attribute [Authorize(Roles = "Администратор, Регистратор")]
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")]
 @using Entities
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -12,7 +12,7 @@
 <h1>Карточка пациента</h1>
 <hr />
 <CascadingAuthenticationState>
-    <AuthorizeView Roles="Администратор, Регистратор">
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")">
         <Authorized>
             <EditForm Model="@patient" Context="editContext" OnValidSubmit="SaveUser">
                 <RadzenStack>

@@ -15,6 +15,7 @@ using Shared.Models;
 using WebAPI.Filters;
 using WebAPI.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -34,8 +35,8 @@ namespace WebAPI.Controllers
             _hubContext = hubContext;
             _logger = logger;
         }
-        [Authorize]
-        // GET: api/Patients
+
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
         public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? search, string? orderBy, string top, string skip)
         {
@@ -79,8 +80,7 @@ namespace WebAPI.Controllers
 
             return new DataServiceResult<PatientDTO>(_mapper.Map<IEnumerable<PatientDTO>>(patients), count);
         }
-        [Authorize]
-        // GET: api/Patients/5
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet("{id}")]
         public async Task<ActionResult<PatientDTO>> GetPatient(int id)
         {
@@ -93,9 +93,7 @@ namespace WebAPI.Controllers
 
             return Ok(_mapper.Map<PatientDTO>(patient));
         }
-        [Authorize]
-        // PUT: api/Patients/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPatient(int id, PatientDTO patient)
         {
@@ -135,9 +133,7 @@ namespace WebAPI.Controllers
             await _hubContext.Clients.Group("Администратор").PatientsChanged("Успешно");
             return Ok();
         }
-        [Authorize]
-        // POST: api/Patients
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patient)
         {
@@ -163,8 +159,8 @@ namespace WebAPI.Controllers
 
             return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
         }
-        [Authorize]
-        // DELETE: api/Patients/5
+
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {

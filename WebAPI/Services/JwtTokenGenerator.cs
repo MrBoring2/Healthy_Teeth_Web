@@ -28,6 +28,7 @@ namespace WebAPI.Services
             {
                 access_token = encodedJwt,
                 user_name = identity.FindFirst(ClaimTypes.Name).Value.ToString(),
+                user_fio = identity.FindFirst(ClaimTypes.GivenName).Value.ToString(),
                 role_name = identity.FindFirst(ClaimTypes.Role).Value.ToString(),
             };
 

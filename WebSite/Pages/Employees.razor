@@ -1,4 +1,4 @@
-﻿@attribute [Authorize(Roles = "Регистратор, Администратор")]
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")]
 @page "/employees"
 @using Entities
 @using Microsoft.AspNetCore.Authorization
@@ -8,7 +8,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 
 <CascadingAuthenticationState>
-    <AuthorizeView Roles="Регистратор,Администратор">
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")">
         <Authorized>
             <PageTitle>Сотрудники</PageTitle>
 
@@ -41,7 +41,9 @@
                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="EmployeeDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
                 <HeaderTemplate>
-                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow" />
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")" Context="innerContext">
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить сотрудника" Click="@OpenEmployeeWindow" />
+                    </AuthorizeView>
                 </HeaderTemplate>
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
@@ -53,7 +55,7 @@
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Role.Title" Title="Роль" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.Account.Login" Title="Логин" Width="100px" />
                     <RadzenDataGridColumn Property="EmployeeDTO.GenderName" Title="Пол" Width="100px" />
-                    <AuthorizeView Roles="Администратор" Context="innerContext">
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")" Context="innerContext">
                         <RadzenDataGridColumn Context="employee" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                             <Template Context="employee">
                                 <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditEmployeeWindow(employee.Id))" @onclick:stopPropagation="true">

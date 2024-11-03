@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Shared.DTO;
 using AutoMapper;
 using Shared.Models;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -28,7 +29,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/Specializations
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
         public async Task<IEnumerable<SpecializationDTO>> GetSpecializations()
         {

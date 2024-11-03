@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Shared.Models;
 using System.Security.Claims;
 using WebAPI.Identity;
@@ -7,15 +8,15 @@ using WebSite.Services;
 namespace WebSite.Providers
 {
     public class CustomStateProvider : AuthenticationStateProvider
-	{
+    {
         private readonly HttpClient _httpClient;
-		private readonly AuthHttpService _authHttpService;
+        private readonly AuthHttpService _authHttpService;
 
-		public CustomStateProvider(AuthHttpService authHttpService, HttpClient httpClient)
-		{
-			_authHttpService = authHttpService;
+        public CustomStateProvider(AuthHttpService authHttpService, HttpClient httpClient)
+        {
+            _authHttpService = authHttpService;
             _httpClient = httpClient;
-		}
+        }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
@@ -32,11 +33,14 @@ namespace WebSite.Providers
             var result = await _authHttpService.LoginAsync(loginViewModel);
             if (result.Success)
             {
-                var authUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, loginViewModel.Login)
-                }, "apiauth"));
-                var authState = Task.FromResult(new AuthenticationState(authUser));
+                //var authUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                //{
+                //    new Claim(ClaimTypes.Name, loginViewModel.Login)
+                //    new Claim(ClaimTypes.Role, Utils.Utils.ParseClaimsFromJwt(accessToken))
+                //}, "apiauth"));
+                var authState = Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(Utils.Utils.ParseClaimsFromJwt(result.JwtBearer), "jwt"))));
+                //Console.WriteLine(authState.Result.User.Identity.IsAuthenticated);
+                //Console.WriteLine(authState.Result.User.Claims.First(p => p.Type == ClaimTypes.Role).Value);
                 NotifyAuthenticationStateChanged(authState);
             }
 

@@ -15,6 +15,7 @@ using Shared.Models;
 using WebAPI.SignalR;
 using WebAPI.Filters;
 using WebAPI.Helpers;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -34,7 +35,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/Services
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
         public async Task<ActionResult<DataServiceResult<ServiceDTO>>> GetServices(string? search, string? orderBy, string top, string skip)
         {
@@ -80,7 +81,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/Services/5
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Service>> GetService(int id)
         {
@@ -96,7 +97,7 @@ namespace WebAPI.Controllers
 
         // PUT: api/Services/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutService(int id, ServiceDTO service)
         {
@@ -131,7 +132,7 @@ namespace WebAPI.Controllers
 
         // POST: api/Services
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPost]
         public async Task<ActionResult<ServiceDTO>> PostService(ServiceViewModel service)
         {
@@ -150,7 +151,7 @@ namespace WebAPI.Controllers
         }
 
         // DELETE: api/Services/5
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteService(int id)
         {

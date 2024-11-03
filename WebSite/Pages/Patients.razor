@@ -1,4 +1,4 @@
-﻿@attribute [Authorize(Roles = "Регистратор, Администратор, Доктор")]
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")]
 @page "/patients"
 @using Entities
 @using Microsoft.AspNetCore.Authorization
@@ -7,7 +7,7 @@
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
 <CascadingAuthenticationState>
-    <AuthorizeView Roles="Регистратор,Администратор,Доктор">
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
         <Authorized>
             <PageTitle>Пациенты</PageTitle>
 
@@ -41,7 +41,7 @@
                     <RadzenDataGridColumn Property="PatientDTO.FullName" Title="ФИО" Width="250px" />
                     <RadzenDataGridColumn Property="PatientDTO.Phone" Title="Номер телефона" Width="150px" />
                     <RadzenDataGridColumn Property="PatientDTO.Passport" Title="Паспорт" Width="100px" />
-                    <AuthorizeView Roles="Регистратор,Администратор" Context="newCon">
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="newCon">
                         <RadzenDataGridColumn Context="patient" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                             <Template Context="patient">
                                 <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditPatientWindow(patient.Id))" @onclick:stopPropagation="true">

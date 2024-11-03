@@ -12,17 +12,30 @@
         <Authorized>
             <RadzenLayout>
                 <RadzenHeader>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-                        <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
-                        <RadzenBreadCrumb>
-                            <Template Context="item">
-                                <RadzenBadge Text="@item.Text" IsPill="true" />
-                            </Template>
-                            <ChildContent>
-                                <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
-                            </ChildContent>
-                        </RadzenBreadCrumb>
-                    </RadzenStack>
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                                <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+                                <RadzenBreadCrumb>
+                                    <Template Context="item">
+                                        <RadzenBadge Text="@item.Text" IsPill="true" />
+                                    </Template>
+                                    <ChildContent>
+                                        <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
+                                    </ChildContent>
+                                </RadzenBreadCrumb>
+                            </RadzenStack>
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                                <RadzenIcon Icon="account_circle" Style="font-size: 2em;" class="rz-mt-1" IconColor="@Colors.Primary" />
+                                <RadzenText Text="@UserHeader" class="rz-mt-3 rz-mr-5" />
+                            </RadzenStack>
+
+                        </RadzenColumn>
+                    </RadzenRow>
+
+
                 </RadzenHeader>
                 <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
                     <RadzenPanelMenu Style="width:245px">
@@ -55,15 +68,20 @@
     private CustomStateProvider AuthStatePrivder { get; set; }
     [Inject]
     public NavigationManager Nagivation { get; set; }
+    [Inject]
+    public ILocalStorageService LocalStorage { get; set; }
     private string BroadcampTitle { get; set; }
     private string Path { get; set; }
+    public string UserHeader { get; set; }
     bool sidebar1Expanded = true;
 
     protected override async Task OnInitializedAsync()
     {
+
         Path = "/visits";
         BroadcampTitle = "Посещения";
         var user = await _authProvider.GetAuthenticationStateAsync();
+        UserHeader = $"{user.User.Claims.First(p => p.Type == ClaimTypes.GivenName).Value}, {user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value}";
         if (!user.User.Identity.IsAuthenticated)
         {
             Nagivation.NavigateTo("/login");
@@ -76,7 +94,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
 
+
+        }
 
         // var auth = await _localStorageService.GetItemAsync<string>("accessToken");
         // //Console.WriteLine($"Токен: {auth}");
