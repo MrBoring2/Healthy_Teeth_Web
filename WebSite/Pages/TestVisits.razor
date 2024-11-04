@@ -20,7 +20,7 @@
                 </RadzenFormField>
             </RadzenStack>
             <RadzenText Text="@DisplayedDate" TextAlign="TextAlign.Center" TextStyle="TextStyle.H5" />
-            <RadzenDataGrid Data="@Data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellClick="@OnCellClick"
+            <RadzenDataGrid Data="@Data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellDoubleClick="@OnCellDoubleClick"
                             CellRender="OnCellRender" IsLoading="@IsLoading" LoadData=@LoadTable>
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>

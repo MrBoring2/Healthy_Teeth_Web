@@ -1,7 +1,7 @@
 services:
   proxy:
     container_name: Proxy
-    image: proxy_nginx
+    image: proxy_nginx:v1
     build:
         context: .
         dockerfile: Proxy/Dockerfile

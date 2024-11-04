@@ -1,0 +1,16 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@page "/doctor-schedule"
+
+<h3>DoctorSchedule</h3>
+
+@code {
+    [Inject]
+    private HubConnection HubConnection { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection.On<string>("VisitsChanged", async mes =>
+        {
+            Console.WriteLine("Пришло сообщение");
+        });
+    }
+}

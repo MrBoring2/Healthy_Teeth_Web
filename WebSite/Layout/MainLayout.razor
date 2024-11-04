@@ -34,12 +34,13 @@
 
                         </RadzenColumn>
                     </RadzenRow>
-
-
                 </RadzenHeader>
                 <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
                     <RadzenPanelMenu Style="width:245px">
-                        <AuthorizeView Roles="Администратор,Регистратор" Context="innerContext">
+                        <AuthorizeView Roles="@($"{Shared.Constants.Roles.DOCTOR}")" Context="innerContext2">
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Записи" Path="doctor-schedule" Icon="date_range" />
+                        </AuthorizeView>
+                        <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="innerContext">
                             <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="doctors-schedule" Icon="date_range" />
                             <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
                         </AuthorizeView>

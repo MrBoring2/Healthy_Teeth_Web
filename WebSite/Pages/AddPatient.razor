@@ -52,7 +52,7 @@
 
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton Text="Сохранить" Click="@SaveUser" />
-                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                        <RadzenButton Click="@((args) => DialogService.Close(false))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
                     </RadzenStack>
                 </RadzenStack>
             </EditForm>

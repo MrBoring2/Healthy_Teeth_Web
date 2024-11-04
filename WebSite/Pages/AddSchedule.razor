@@ -12,7 +12,7 @@
                     <RadzenFormField Text="День недели">
                         <RadzenDropDown Placeholder="Выберите день недели" Data="@Weekdays" @bind-Value=@schedule.Weekday TextProperty="@nameof(Weekday.WeekdayTitle)" ValueProperty="@nameof(Weekday.WeekdayNumber)" />
                     </RadzenFormField>
-                    <RadzenFormField Text="Конец смены">
+                    <RadzenFormField Text="Начало смены">
                         <RadzenDatePicker @bind-Value=@schedule.TimeFrom ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly1" />
                     </RadzenFormField>
                     <RadzenFormField Text="Конец смены">

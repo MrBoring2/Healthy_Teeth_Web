@@ -1,0 +1,77 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.Models
+@using WebSite.Models
+@using WebSite.Providers
+@using WebSite.Services
+@using Shared.DTO
+@* @page "/" *@
+@inject NavigationManager NavigationManager
+<h1>Создание посещения</h1>
+<hr />
+
+<RadzenSteps NextText="Далее" PreviousText="Назад">
+    <Steps>
+        <RadzenStepsItem Text="Пациенты">
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">1. Выберите пациента</RadzenText>
+            <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedPatients SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="PatientDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
+                <HeaderTemplate>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить пациента" Click="@OpenPatientWindow" />
+                </HeaderTemplate>
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Property="PatientDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn Property="PatientDTO.FullName" Title="ФИО" Width="250px" />
+                    <RadzenDataGridColumn Property="PatientDTO.Phone" Title="Номер телефона" Width="150px" />
+                    <RadzenDataGridColumn Property="PatientDTO.Passport" Title="Паспорт" Width="100px" />
+                    <RadzenDataGridColumn Property="PatientDTO.GenderName" Title="Пол" Width="100px" />
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="newCon">
+                        <RadzenDataGridColumn Context="patient" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="patient">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditPatientWindow(patient.Id))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => DeletePatient(patient.Id))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </AuthorizeView>
+                </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
+            </RadzenDataGrid>
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Детали посещения" Disabled="@(SelectedPatients == null)">
+            <RadzenStack>
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">2. Заполните информацию о посещении</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6" Text="Дата посещения"/>
+                <RadzenDatePicker ReadOnly="true" @bind-Value="@VisitDate" />
+                <RadzenText TextStyle="TextStyle.H6" Text="Время посещения" />
+                <RadzenDatePicker ReadOnly="true" @bind-Value="@VisitTime" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" />
+                <RadzenText TextStyle="TextStyle.H6" Text="Доктор" />
+                <RadzenTextBox ReadOnly="true" @bind-Value="@Employee.FullName" />
+                <RadzenText TextStyle="TextStyle.H6" Text="Пациент"/>
+                <RadzenTextBox ReadOnly="true" @bind-Value="@SelectedPatients.FirstOrDefault().FullName" />
+                <RadzenText TextStyle="TextStyle.H6" Text="Причина посещения" />
+                <RadzenTextBox @bind-Value="VisitPurpose" />
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenButton Text="Сохранить" Click="@SaveVisit" />
+                    <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                </RadzenStack>
+            </RadzenStack>
+
+            @* <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+            Data="@(orderDetailsByOrders)" ColumnWidth="200px">
+            <Columns>
+            <RadzenDataGridColumn Property="Product.ProductName" Title="Product" />
+            <RadzenDataGridColumn Property="@nameof(OrderDetail.Quantity)" Title="Quantity" />
+            <RadzenDataGridColumn Property="@nameof(OrderDetail.Discount)" Title="Discount" FormatString="{0:P}" />
+            </Columns>
+            </RadzenDataGrid> *@
+        </RadzenStepsItem>
+    </Steps>
+</RadzenSteps>
+

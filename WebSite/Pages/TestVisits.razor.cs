@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
 using Radzen;
 using Radzen.Blazor;
 using Shared.DTO;
@@ -17,9 +18,13 @@ namespace WebSite.Pages
     public partial class TestVisits
     {
         [Inject]
+        private HubConnection HubConnection { get; set; }
+        [Inject]
         private IEmployeeApiService EmployeeApiService { get; set; }
         [Inject]
         private ISpecializationApiService SpeciazaizationApiService { get; set; }
+        [Inject]
+        private DialogService DialogService { get; set; }
         public List<Dictionary<string, ScheduleRegister>> Data { get; set; }
         private string dispalyedDate;
         public string DisplayedDate
@@ -83,6 +88,10 @@ namespace WebSite.Pages
         public IList<Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>> selectedCellData = new List<Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>>();
         protected override async Task OnInitializedAsync()
         {
+            HubConnection.On<string>("VisitsChanged", async mes =>
+            {
+                await LoadTable(lastArgs);
+            });
             selectedDate = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
             DisplayedDate = SelectedDate.ToShortDateString() + ", " + CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.GetDayName(SelectedDate.DayOfWeek);
             await LoadSpecializations();
@@ -177,8 +186,7 @@ namespace WebSite.Pages
             selectedSpecialization = Specializations.FirstOrDefault();
             StateHasChanged();
         }
-
-        public async Task OnCellClick(DataGridCellMouseEventArgs<Dictionary<string, ScheduleRegister>> args)
+        async void OnCellDoubleClick(DataGridCellMouseEventArgs<Dictionary<string, ScheduleRegister>> args)
         {
             selectedCellData.Clear();
 
@@ -191,13 +199,44 @@ namespace WebSite.Pages
             {
                 selectedCellData.Add(new Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>(args.Data, args.Column));
             }
-            var a = selectedCellData.First().Item2;
+            Console.WriteLine("dsadasdasd");
+
+
+            var a = selectedCellData?.FirstOrDefault()?.Item2;
             var c = args.Column.UniqueID;
+           // Console.WriteLine(c);
             var d = args.Data[c];
-            Console.WriteLine(d.Value);
+
+            if (d.StartTime <= d.TargetTime && d.EndTime.Value.AddMinutes(-30) >= d.TargetTime)
+            {
+                if (d.Data?.GetType() == typeof(VisitDTO))
+                {
+
+                }
+                else
+                {
+                    await OpenVisitWindow(d);
+                }
+            }
+
+
         }
 
+        public async Task OpenVisitWindow(ScheduleRegister schedule)
+        {
+            Console.WriteLine(schedule.EmployeeId);
+            await DialogService.OpenAsync<AddVisit>($"Добавление",
+               new Dictionary<string, object>() { { "EmployeeId", schedule.EmployeeId }, { "VisitDate", SelectedDate }, { "VisitTime", schedule.TargetTime } },
+               new DialogOptions()
+               {
+                   Resizable = true,
+                   Draggable = true,
 
+                   Width = "1000px",
+                   Height = "720px"
+               });
+
+        }
         private void OnCellRender(DataGridCellRenderEventArgs<Dictionary<string, ScheduleRegister>> args)
         {
             var c = args.Column.UniqueID;

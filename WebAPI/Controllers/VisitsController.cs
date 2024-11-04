@@ -124,7 +124,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
             return Ok();
         }
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
@@ -138,13 +138,13 @@ namespace WebAPI.Controllers
                 VisirtTime = visit.VisirtTime,
                 VisitDate = visit.VisitDate,
                 VisitPurpose = visit.VisitPurpose,
-                VisitStatusId = visit.VisitStatusId
-
+                VisitStatusId = 1
             };
             _context.Visits.Add(visitDb);
             await _context.SaveChangesAsync();
-
-            await _hubContext.Clients.Group("Администратор").VisitsChanged("Успешно");
+            var userId = await _context.Employees.Include(p => p.Account).FirstOrDefaultAsync(p => p.Id == visit.EmployeeId);
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+            await _hubContext.Clients.User(userId.Account.Login).VisitsChanged("Успешно");
 
             return CreatedAtAction("GetVisit", new { id = visit.Id }, visit);
         }
