@@ -22,11 +22,11 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<SetAuthHttpHandler>();
 builder.Services.AddHttpClient("authapi", httpClient =>
 {
-    httpClient.BaseAddress = new Uri("https://localhost:8082");
+    httpClient.BaseAddress = new Uri("https://localhost:1044");
 });
 builder.Services.AddHttpClient("api", httpClient =>
 {
-    httpClient.BaseAddress = new Uri("https://localhost:8082");
+    httpClient.BaseAddress = new Uri("https://localhost:1044");
 }).AddHttpMessageHandler<SetAuthHttpHandler>();
 
 builder.Services.AddHttpClientInterceptor();
@@ -53,7 +53,7 @@ builder.Services.AddScoped(sp =>
     // var a = sp.GetService<AuthHttpService>();
     var authHttpService = sp.GetRequiredService<AuthHttpService>();
     return new HubConnectionBuilder()
-    .WithUrl("https://localhost:8082/healthy_teeth_hub", async options =>
+    .WithUrl("https://localhost:1044/healthy_teeth_hub", async options =>
     {
         options.AccessTokenProvider = async () =>
         {

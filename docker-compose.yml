@@ -1,4 +1,18 @@
 services:
+  proxy:
+    container_name: Proxy
+    image: proxy_nginx
+    build:
+        context: .
+        dockerfile: Proxy/Dockerfile
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+        -  "1081:80"
+        -  "1044:443"
+    restart: unless-stopped
+    networks:
+      healthy-teeth-network:
   db:
     container_name: healthy-teeth-db
     image: postgres:16
@@ -11,6 +25,8 @@ services:
     volumes:
       - healthy-teeth-pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      healthy-teeth-network:
   api:
     container_name: healthy-teeth-api
     image: ${DOCKER_REGISTRY-}web-api:v1
@@ -18,36 +34,43 @@ services:
       context: .
       dockerfile: WebAPI/Dockerfile
     environment:
-      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=0798661
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/healthy-teeth.pfx
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password=0798661
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/healthy-teeth.pfx
       - TZ=Asia/Yekaterinburg
     ports:
       - "8081:80"
-      - "8082:443"
+      # - "8082:443"
     volumes:
-      - ~/.aspnet/https:/https:ro
+      # - ~/.aspnet/https:/https:ro
       - .healthy-teeth-api-logs:/logger/logs
       # - healthy-teeth-api-logs:/logger/logs
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      healthy-teeth-network:
   web:
     image: web_site:v1
     build:
       context: .
       dockerfile: WebSite/Dockerfile
     environment:
-      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "8083:80"
-      - "8084:443"
+      # - "8084:443"
     volumes:
       - ~/.aspnet/https:/https:ro
+    networks:
+      healthy-teeth-network:
 
 volumes:
   healthy-teeth-pgdata:
   healthy-teeth-api-logs:
-  
+  certificates:
+
+networks:
+  healthy-teeth-network:
     
 

@@ -105,6 +105,7 @@ namespace WebSite.Services
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 _navigationManager.NavigateTo("/login");
+                return "";
             }
 
 
