@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Shared.Models
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @using WebSite.Providers
 @layout LoginLayout
 @inject NavigationManager _navigation
@@ -18,7 +19,7 @@
                     <RadzenTextBox @bind-Value="@loginModel.Login" />
                 </RadzenFormField>
                 <RadzenFormField Text="Пароль" Style="width: 100%;">
-                    <RadzenTextBox @bind-Value="@loginModel.Password" />
+                    <RadzenPassword @bind-Value="@loginModel.Password" />
                 </RadzenFormField>
                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
                     <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Text="Войти" />
@@ -48,7 +49,16 @@
         var result = await _authStateProvider.LoginAsync(loginModel);
         if (result.Success)
         {
-            _navigation.NavigateTo("/");
+            var user = await _authStateProvider.GetAuthenticationStateAsync();
+            if ((user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Администратор" || user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Регистратор"))
+            {
+                _navigation.NavigateTo("/visits");
+            }
+            else
+            {
+                _navigation.NavigateTo("/patients");
+            }
+
         }
         else
         {

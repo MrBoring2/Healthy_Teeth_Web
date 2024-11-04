@@ -20,20 +20,20 @@ namespace Entities
         [MaxLength(30)]
         public string MiddleName { get; set; }
         public string? FullName { get; private set; }
-        [MaxLength(10)]
-        public  string? Gender { get; set; }
+        public int? Gender { get; set; }
         public DateOnly? DateOfBirth { get; set; }
         [MaxLength(40)]                 
         public string? City { get; set; }
         [MaxLength(100)]
         public string? Address { get; set; }
         [Required]
-        [MaxLength(11)]
+        [MaxLength(18)]
         public string Phone { get; set; }
-        [MaxLength(4)]
-        public string? PassportNumber { get; set; }
         [MaxLength(6)]
+        public string? PassportNumber { get; set; }
+        [MaxLength(4)]
         public string? PassportCode { get; set; }
+        public string? Passport { get; private set; }
         [MaxLength(16)]
         public string? MedicalPolicy { get; set; }
         public virtual List<Visit>? Visits { get; set; }

@@ -93,6 +93,9 @@ namespace Data
             {
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""MiddleName"" || ' ' || ""LastName"")", stored: true);
+                entity.Property(p => p.Passport).HasComputedColumnSql(@"trim(""PassportCode"" || ' ' || ""PassportNumber"")", stored: true);
+                entity.HasIndex(p => p.FullName);
+                entity.HasIndex(p => p.Passport);
             });
 
             modelBuilder.Entity<Schedule>(entity =>

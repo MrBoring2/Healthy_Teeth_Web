@@ -38,14 +38,14 @@ namespace WebAPI.Controllers
 
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
-        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? search, string? orderBy, string top, string skip)
+        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? fullname, string? phonenumber, string? passport, string? orderBy, string top, string skip)
         {
             var orderBySplit = orderBy?.Split(' ');
 
             PatientFilter filter;
             try
             {
-                filter = new PatientFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+                filter = new PatientFilter(fullname, phonenumber, passport, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
             }
             catch (Exception ex)
             {
@@ -130,7 +130,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").PatientsChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
             return Ok();
         }
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
@@ -151,11 +151,11 @@ namespace WebAPI.Controllers
                 MedicalPolicy = patient.MedicalPolicy,
                 PassportCode = patient.PassportCode,
                 PassportNumber = patient.PassportNumber
-              };
+            };
             _context.Patients.Add(dbPatient);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").PatientsChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
 
             return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
         }
@@ -164,16 +164,26 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients.Include(p => p.Visits).FirstOrDefaultAsync(p => p.Id == id);
             if (patient == null)
             {
                 return NotFound();
             }
 
-            _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
+            if (patient.Visits.Count > 0)
+                return BadRequest("Пациент имеет записи в посещениях");
 
-            return NoContent();
+            try
+            {
+                _context.Patients.Remove(patient);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Не удалось удалить пациента: " + ex.Message);
+            }
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+            return Ok();
         }
 
         private bool PatientExists(int id)

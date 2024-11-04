@@ -40,7 +40,7 @@
                 <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
                     <RadzenPanelMenu Style="width:245px">
                         <AuthorizeView Roles="Администратор,Регистратор" Context="innerContext">
-                            <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="visits" Icon="date_range" />
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="doctors-schedule" Icon="date_range" />
                             <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
                         </AuthorizeView>
                         <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />
@@ -81,14 +81,14 @@
         Path = "/visits";
         BroadcampTitle = "Посещения";
         var user = await _authProvider.GetAuthenticationStateAsync();
-        UserHeader = $"{user.User.Claims.First(p => p.Type == ClaimTypes.GivenName).Value}, {user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value}";
+        UserHeader = $"{user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.GivenName)?.Value}, {user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value}";
         if (!user.User.Identity.IsAuthenticated)
         {
             Nagivation.NavigateTo("/login");
         }
-        if ((user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Администратор" || user.User.Claims.First(p => p.Type == ClaimTypes.Role).Value == "Регистратор"))
+        if ((user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Администратор" || user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Регистратор"))
         {
-            Nagivation.NavigateTo("/visits");
+            Nagivation.NavigateTo("/doctors-schedule");
         }
     }
 

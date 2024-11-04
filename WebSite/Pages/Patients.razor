@@ -1,4 +1,5 @@
 ﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")]
+@page "/"
 @page "/patients"
 @using Entities
 @using Microsoft.AspNetCore.Authorization
@@ -6,10 +7,10 @@
 @using Shared.DTO
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
+<PageTitle>Здоровые зубы | Пациенты</PageTitle>
 <CascadingAuthenticationState>
     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
         <Authorized>
-            <PageTitle>Пациенты</PageTitle>
 
             <RadzenText TextStyle="TextStyle.H2">Список пациентов</RadzenText>
             <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
@@ -21,9 +22,14 @@
                 <ChildContent>
                     <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
                         <RadzenFormField Text="Поиск по ФИО">
-                            <RadzenTextBox Placeholder="Введите ФИО пациента" @bind-Value="@Search" />
+                            <RadzenTextBox Placeholder="Введите ФИО пациента" @bind-Value="@FullName" />
                         </RadzenFormField>
-
+                        <RadzenFormField Text="Поиск по телефону">
+                            <RadzenMask Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@PhoneNumber" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Поиск по паспорту">
+                            <RadzenMask Mask="**** ******" CharacterPattern="[0-9]" Placeholder="0000 000000" Name="Phone" @bind-Value="@Passport" />
+                        </RadzenFormField>
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>
@@ -41,6 +47,7 @@
                     <RadzenDataGridColumn Property="PatientDTO.FullName" Title="ФИО" Width="250px" />
                     <RadzenDataGridColumn Property="PatientDTO.Phone" Title="Номер телефона" Width="150px" />
                     <RadzenDataGridColumn Property="PatientDTO.Passport" Title="Паспорт" Width="100px" />
+                    <RadzenDataGridColumn Property="PatientDTO.GenderName" Title="Пол" Width="100px" />
                     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="newCon">
                         <RadzenDataGridColumn Context="patient" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                             <Template Context="patient">

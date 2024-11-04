@@ -32,7 +32,7 @@
                         <RadzenDatePicker Placeholder="Дата рождения" DateFormat="dd.MM.yyyy" @bind-Value="@employee.DateOfBirth" />
                     </RadzenFormField>
                     <RadzenFormField Text="Телефон">
-                        <RadzenTextBox Placeholder="Телефон" @bind-Value="@employee.Phone" />
+                        <RadzenMask Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@employee.Phone" />
                     </RadzenFormField>
                     <RadzenFormField Text="Роль">
                         <RadzenDropDown Placeholder="Выберите роль" Data="@Roles" @bind-Value=@employee.RoleId TextProperty="@nameof(RoleDTO.Title)" ValueProperty="@nameof(RoleDTO.Id)" />
@@ -53,7 +53,7 @@
                     @if (employee.Id == 0 || (employee.Id != 0 && employee.ChangePassword))
                     {
                         <RadzenFormField Text="Пароль">
-                            <RadzenTextBox Placeholder="Пароль" @bind-Value="@employee.Password" />
+                            <RadzenPassword Placeholder="Пароль" @bind-Value="@employee.Password" />
                         </RadzenFormField>
                     }
 

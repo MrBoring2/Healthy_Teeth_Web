@@ -8,6 +8,7 @@
 <head>
     <RadzenTheme Theme="standart" />
 </head>
+<PageTitle>Загрузка</PageTitle>
 <RadzenTheme Theme="standart" />
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="@OnNavigateAsync">
@@ -22,8 +23,8 @@
                     <h1>Авторизация в процессе</h1>
                 </Authorizing>
             </AuthorizeRouteView>
-@*             <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" /> *@
+            @*  <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" /> *@
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>

@@ -26,16 +26,16 @@
                         <RadzenTextBox Placeholder="Отчество" @bind-Value="@patient.LastName" />
                     </RadzenFormField>
                     <RadzenFormField Text="Телефон">
-                        <RadzenTextBox Placeholder="Телефон" @bind-Value="@patient.Phone" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Номер паспорта">
-                        <RadzenTextBox Placeholder="Номер паспорта" @bind-Value="@patient.PassportNumber" />
+                        <RadzenMask Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@patient.Phone" />
                     </RadzenFormField>
                     <RadzenFormField Text="Серия паспорта">
-                        <RadzenTextBox Placeholder="Серия паспорта" @bind-Value="@patient.PassportCode" />
+                        <RadzenMask Mask="****" CharacterPattern="[0-9]" Placeholder="0000" Name="Phone" @bind-Value="@patient.PassportCode" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Номер паспорта">
+                        <RadzenMask Mask="******" CharacterPattern="[0-9]" Placeholder="000000" Name="Phone" @bind-Value="@patient.PassportNumber" />
                     </RadzenFormField>
                     <RadzenFormField Text="Медицинский полис">
-                        <RadzenTextBox Placeholder="Медицинский полис" @bind-Value="@patient.MedicalPolicy" />
+                        <RadzenMask Mask="****************" CharacterPattern="[0-9]" Placeholder="0000000000000000" Name="Phone" @bind-Value="@patient.MedicalPolicy" />
                     </RadzenFormField>
                     <RadzenFormField Text="Пол">
                         <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@patient.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
@@ -48,7 +48,7 @@
                     </RadzenFormField>
                     <RadzenFormField Text="Адрес">
                         <RadzenTextBox Placeholder="Адрес" @bind-Value="@patient.Address" />
-                    </RadzenFormField>                
+                    </RadzenFormField>
 
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenButton Text="Сохранить" Click="@SaveUser" />

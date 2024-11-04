@@ -176,7 +176,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
             return Ok();
         }
 
@@ -208,7 +208,7 @@ namespace WebAPI.Controllers
             _context.Employees.Add(dbEmployee);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
 
             return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
         }
@@ -235,7 +235,7 @@ namespace WebAPI.Controllers
             {
                 return BadRequest("Не удалось удалить пользователя: " + ex.Message);
             }
-            await _hubContext.Clients.Group("Администратор").EmployeesChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
             return Ok();
         }
 

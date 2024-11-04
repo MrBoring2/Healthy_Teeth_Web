@@ -24,7 +24,7 @@ namespace Shared.Models
         public int Gender { get; set; }
         [Required]
         public DateOnly DateOfBirth { get; set; }
-        [MaxLength(11)]
+        [MaxLength(18)]
         [Required]
         public string Phone { get; set; }
         public List<ScheduleDTO> Schedules { get; set; }

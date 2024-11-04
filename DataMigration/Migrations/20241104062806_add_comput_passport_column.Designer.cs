@@ -3,6 +3,7 @@ using System;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataMigration.Migrations
 {
     [DbContext(typeof(HealthyTeethDbContext))]
-    partial class HealthyTeethDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241104062806_add_comput_passport_column")]
+    partial class add_comput_passport_column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,8 +93,8 @@ namespace DataMigration.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(18)
-                        .HasColumnType("character varying(18)");
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)");
 
                     b.Property<int>("SpecializationId")
                         .HasColumnType("integer");
@@ -161,9 +164,9 @@ namespace DataMigration.Migrations
                         .HasColumnType("text")
                         .HasComputedColumnSql("trim(\"FirstName\" || ' ' || \"MiddleName\" || ' ' || \"LastName\")", true);
 
-                    b.Property<int?>("Gender")
+                    b.Property<string>("Gender")
                         .HasMaxLength(10)
-                        .HasColumnType("integer");
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -182,26 +185,22 @@ namespace DataMigration.Migrations
                     b.Property<string>("Passport")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("text")
-                        .HasComputedColumnSql("trim(\"PassportCode\" || ' ' || \"PassportNumber\")", true);
+                        .HasComputedColumnSql("trim(\"PassportNumber\" || ' ' || \"PassportCode\")", true);
 
                     b.Property<string>("PassportCode")
-                        .HasMaxLength(4)
-                        .HasColumnType("character varying(4)");
-
-                    b.Property<string>("PassportNumber")
                         .HasMaxLength(6)
                         .HasColumnType("character varying(6)");
 
+                    b.Property<string>("PassportNumber")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(18)
-                        .HasColumnType("character varying(18)");
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FullName");
-
-                    b.HasIndex("Passport");
 
                     b.ToTable("Patients");
                 });

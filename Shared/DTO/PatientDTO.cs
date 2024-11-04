@@ -21,9 +21,8 @@ namespace Shared.DTO
         [MaxLength(30)]
         public string MiddleName { get; set; }
         public string? FullName { get; set; }
-
-        [MaxLength(10)]
-        public string? Gender { get; set; }
+        public int? Gender { get; set; }
+        public string GenderName => Gender == 0 ? "Мужчина" : "Женщина";
 
         public DateOnly? DateOfBirth { get; set; }
 
@@ -33,18 +32,18 @@ namespace Shared.DTO
         [MaxLength(100)]
         public string? Address { get; set; }
         [Required]
-        [MaxLength(11)]
+        [MaxLength(18)]
         public string Phone { get; set; }
 
-        [MaxLength(4)]
+        [MaxLength(6)]
         public string? PassportNumber { get; set; }
 
-        [MaxLength(6)]
+        [MaxLength(4)]
         public string? PassportCode { get; set; }
 
         [MaxLength(16)]
         public string? MedicalPolicy { get; set; }
         public virtual List<VisitDTO>? Visits { get; set; }
-        public string Passport => PassportNumber + " " + PassportCode;
+        public string? Passport { get; set; }
     }
 }

@@ -6,12 +6,10 @@
 @using Shared.DTO
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
-
+<PageTitle>Здоровые зубы | Сотрудники</PageTitle>
 <CascadingAuthenticationState>
     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")">
         <Authorized>
-            <PageTitle>Сотрудники</PageTitle>
-
             <RadzenText TextStyle="TextStyle.H2">Список сотрудников</RadzenText>
 
 

@@ -126,7 +126,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Group("Администратор").ServicesChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
             return Ok();
         }
 
@@ -145,7 +145,7 @@ namespace WebAPI.Controllers
             _context.Services.Add(serviceDb);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group("Администратор").ServicesChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
 
             return CreatedAtAction("GetService", new { id = service.Id }, service);
         }
@@ -163,7 +163,7 @@ namespace WebAPI.Controllers
 
             _context.Services.Remove(service);
             await _context.SaveChangesAsync();
-
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
             return NoContent();
         }
 
