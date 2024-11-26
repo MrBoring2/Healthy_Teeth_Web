@@ -26,13 +26,11 @@ namespace WebAPI.Filters
                 return p =>
                 {
                     bool res1 = true;
-                    bool res2 = true;
-                    bool res3 = true;
 
                     if (!string.IsNullOrEmpty(Search))
                         res1 = p.Title.ToLower().Contains(Search.ToLower());
 
-                    if (!res1 || !res2 || !res3)
+                    if (!res1)
                         return false;
 
                     return true;

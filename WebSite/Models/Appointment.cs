@@ -1,4 +1,4 @@
-﻿namespace WebSite.Pages
+﻿namespace WebSite.Models
 {
     public class Appointment
     {

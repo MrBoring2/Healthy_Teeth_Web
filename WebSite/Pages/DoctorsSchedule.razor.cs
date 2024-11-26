@@ -15,7 +15,7 @@ using WebSite.Services.ApiServices;
 
 namespace WebSite.Pages
 {
-    public partial class TestVisits
+    public partial class DoctorsSchedule
     {
         [Inject]
         private HubConnection HubConnection { get; set; }

@@ -12,8 +12,8 @@ namespace WebSite.Services.ApiServices
         Task<ResponseModel<IEnumerable<PatientDTO>>> GetAsync();
         Task<ResponseModel<DataServiceResult<PatientDTO>>> GetAsync(Dictionary<string, string> queryParameters);
         Task<ResponseModel<PatientDTO>> GetAsync(int id);
-        Task<ResponseModel<string>> PostAsync(object data);
-        Task<ResponseModel<string>> PutAsync(int id, object data);
+        Task<ResponseModel<string>> PostAsync(PatientDTO data);
+        Task<ResponseModel<string>> PutAsync(int id, PatientDTO data);
         Task<ResponseModel<string>> DeleteAsync(int id);
     }
     public class PatientApiService : IPatientApiService
@@ -76,7 +76,7 @@ namespace WebSite.Services.ApiServices
             }
         }
 
-        public async Task<ResponseModel<string>> PostAsync(object data)
+        public async Task<ResponseModel<string>> PostAsync(PatientDTO data)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             try
@@ -92,7 +92,7 @@ namespace WebSite.Services.ApiServices
             }
         }
 
-        public async Task<ResponseModel<string>> PutAsync(int id, object data)
+        public async Task<ResponseModel<string>> PutAsync(int id, PatientDTO data)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             try

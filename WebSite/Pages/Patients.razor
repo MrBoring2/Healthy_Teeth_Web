@@ -11,8 +11,6 @@
 <CascadingAuthenticationState>
     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
         <Authorized>
-
-            <RadzenText TextStyle="TextStyle.H2">Список пациентов</RadzenText>
             <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
                 <HeaderTemplate>
                     <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">

@@ -50,6 +50,8 @@ namespace WebAPI.Controllers
             {
                 return BadRequest("Неккоректно заданные параметры");
             }
+
+
             if (orderBySplit == null)
             {
                 filter.OrderBy = "Id";
@@ -61,6 +63,7 @@ namespace WebAPI.Controllers
             if (filter.OrderDirection == "asc")
             {
                 services = _context.Services
+                                  .Include(p => p.Specialization)
                                   .Where(filter.FilterExpression)
                                   .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
                                   .AsQueryable();
@@ -68,6 +71,7 @@ namespace WebAPI.Controllers
             else
             {
                 services = _context.Services
+                                 .Include(p => p.Specialization)
                                  .Where(filter.FilterExpression)
                                  .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
                                  .AsQueryable();
@@ -103,7 +107,7 @@ namespace WebAPI.Controllers
         {
             if (id != service.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             var serviceDb = await _context.Services.FirstOrDefaultAsync(p => p.Id == id);
@@ -126,7 +130,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
             return Ok();
         }
 
@@ -145,7 +149,7 @@ namespace WebAPI.Controllers
             _context.Services.Add(serviceDb);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
 
             return CreatedAtAction("GetService", new { id = service.Id }, service);
         }
@@ -160,11 +164,18 @@ namespace WebAPI.Controllers
             {
                 return NotFound();
             }
+            try
+            {
+                _context.Services.Remove(service);
+                await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Не удалось удалить услугу: " + ex.Message);
+            }
 
-            _context.Services.Remove(service);
-            await _context.SaveChangesAsync();
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
-            return NoContent();
+            return Ok();
         }
 
         private bool ServiceExists(int id)

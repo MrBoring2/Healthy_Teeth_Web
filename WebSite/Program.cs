@@ -43,6 +43,7 @@ builder.Services.AddTransient<IServiceApiService, ServiceApiService>();
 builder.Services.AddTransient<IPatientApiService, PatientApiService>();
 builder.Services.AddTransient<ISpecializationApiService, SpecializationApiService>();
 builder.Services.AddTransient<IVisitApiService, VisitApiService>();
+builder.Services.AddTransient<IVisitStatusApiService, VisitStatusApiService>();
 builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped(
     sp => sp.GetService<IHttpClientFactory>().CreateClient("api"));

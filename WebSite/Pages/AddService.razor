@@ -1,43 +1,35 @@
 ﻿@using Entities
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
 @using Shared.Models
 @using WebSite.Providers
 @using WebSite.Services;
 @using WebSite.Services.ApiServices
-@page "/add-service"
 @inject NavigationManager NavigationManager
 @inject CustomStateProvider _authStateProvider
-@inject EmployeeApiService _apiService
-<h1>@Title User</h1>
+@inject IServiceApiService _apiService
+<h1>Карточка услуги</h1>
 <hr />
-<EditForm Model="@service" OnValidSubmit="SaveUser">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label for="Title" class="form-label">Название</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="service.Title" />
-        </div>
-        <ValidationMessage For="@(() => service.Title)" />
-    </div>
-    <div class="mb-3">
-        <label for="Price" class="form-label">Цена</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="service.Price" />
-        </div>
-        <ValidationMessage For="@(() => service.Price)" />
-    </div>
-    <div class="mb-3">
-        <label for="SpecializatonId" class="form-label">Специализация</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="service.SpecializationId" />
-        </div>
-        <ValidationMessage For="@(() => service.SpecializationId)" />
-    </div>
-    
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
-    </div>
-</EditForm>
-@code {
-
-}
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")">
+        <Authorized>
+            <EditForm Model="@service" Context="editContext" OnValidSubmit="SaveService">
+                <RadzenStack>
+                    <RadzenFormField Text="Название">
+                        <RadzenTextBox Placeholder="Название" @bind-Value="@service.Title" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Стоимость">
+                        <RadzenNumeric Placeholder="Стоимость" @bind-Value="@service.Price" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Специализация">
+                        <RadzenDropDown Placeholder="Выберите специализацию" Data="@Specializations" @bind-Value=@service.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                    </RadzenFormField>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" Click="@SaveService" />
+                        <RadzenButton Click="@((args) => DialogService.Close(false))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </EditForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

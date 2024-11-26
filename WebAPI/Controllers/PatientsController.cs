@@ -177,12 +177,13 @@ namespace WebAPI.Controllers
             {
                 _context.Patients.Remove(patient);
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
             }
             catch (Exception ex)
             {
                 return BadRequest("Не удалось удалить пациента: " + ex.Message);
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+           
             return Ok();
         }
 

@@ -42,6 +42,7 @@
                         </AuthorizeView>
                         <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="innerContext">
                             <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="doctors-schedule" Icon="date_range" />
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Записи" Path="visits" Icon="description" />
                             <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
                         </AuthorizeView>
                         <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />

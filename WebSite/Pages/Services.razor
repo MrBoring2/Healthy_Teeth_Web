@@ -1,50 +1,58 @@
 ﻿@page "/services"
 @using Entities
 @using Newtonsoft.Json
+@using Shared.DTO
 @using WebSite.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @using WebSite.Services.ApiServices
 
 <PageTitle>Здоровые зубы | Услуги</PageTitle>
-
-<h1>Services</h1>
-
-<p>This component demonstrates fetching data from the server.</p>
-
-@if (list == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <CascadingAuthenticationState>
-        <AuthorizeView>
-            <Authorized>
-               @*  <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Temp. (C)</th>
-                            <th>Temp. (F)</th>
-                            <th>Summary</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (list.Count() > 0)
-                        {
-                            @foreach (var service in list)
-                            {
-                                <tr>
-                                    <td>@service.Title</td>
-                                    <td>@service.Price</td>
-                                    <td>@service.Specialization?.Title</td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table> *@
-            </Authorized>
-        </AuthorizeView>
-    </CascadingAuthenticationState>
-}
-
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
+        <Authorized>
+            <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
+                <HeaderTemplate>
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="account_box" class="rz-me-1" /><b>Отображение данных</b>
+                    </RadzenText>
+                </HeaderTemplate>
+                <ChildContent>
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
+                        <RadzenFormField Text="Поиск по названию">
+                            <RadzenTextBox Placeholder="Введите название услугиа" @bind-Value="@SearchTitle" />
+                        </RadzenFormField>
+                    </RadzenStack>
+                </ChildContent>
+            </RadzenPanel>
+            <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedPatients SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="ServiceDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
+                <HeaderTemplate>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить услугу" Click="@OpenServiceWindow" />
+                </HeaderTemplate>
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Property="ServiceDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn Property="ServiceDTO.Title" Title="Название" Width="250px" />
+                    <RadzenDataGridColumn Property="ServiceDTO.Specialization.Title" Title="Специализация" Width="150px" />
+                    <RadzenDataGridColumn Property="ServiceDTO.Price" Title="Цена" Width="100px" />
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")" Context="newCon">
+                        <RadzenDataGridColumn Context="patient" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="patient">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditServiceWindow(patient.Id))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => DeleteService(patient.Id))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </AuthorizeView>
+                </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
+            </RadzenDataGrid>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

@@ -1,16 +1,11 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
+@using WebSite.Models
 @page "/doctor-schedule"
 
-<h3>DoctorSchedule</h3>
-
-@code {
-    [Inject]
-    private HubConnection HubConnection { get; set; }
-    protected override async Task OnInitializedAsync()
-    {
-        HubConnection.On<string>("VisitsChanged", async mes =>
-        {
-            Console.WriteLine("Пришло сообщение");
-        });
-    }
-}
+<RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End" LoadData="@LoadVisits"
+                 TextProperty="Text" SelectedIndex="0" NextText="Вперёд" PrevText="Назад" TodayText="Сегодня"
+                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender 
+                 AppointmentMove=@OnAppointmentMove  >
+    <RadzenDayView TimeFormat="HH:mm"  StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" />
+    <RadzenWeekView TimeFormat="HH:mm" StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" />
+</RadzenScheduler>

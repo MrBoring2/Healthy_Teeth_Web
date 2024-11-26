@@ -34,16 +34,19 @@ namespace WebAPI.Controllers
             _mapper = mapper;
             _hubContext = hubContext;
         }
-        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
+
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet]
-        public async Task<ActionResult<DataServiceResult<VisitDTO>>> GetVisits(string? search, string? orderBy, string top, string skip)
+        public async Task<ActionResult<DataServiceResult<VisitDTO>>> GetVisits(string? patient, string? doctor, string? statusesIds, string startDate, string endDate, string? orderBy, string top, string skip)
         {
             var orderBySplit = orderBy?.Split(' ');
-
-            VisitFilter filter;
+            var startDateOnly = DateOnly.ParseExact(startDate, "dd.MM.yyyy");
+            var endDateOnly = DateOnly.ParseExact(endDate, "dd.MM.yyyy");
+            var statusIds = statusesIds?.Split(',').Select(int.Parse);
+            VisitsFilter filter;
             try
             {
-                filter = new VisitFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+                filter = new VisitsFilter(patient, doctor, statusIds, startDateOnly, endDateOnly, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
             }
             catch (Exception ex)
             {
@@ -60,6 +63,10 @@ namespace WebAPI.Controllers
             if (filter.OrderDirection == "asc")
             {
                 visits = _context.Visits
+                                  .Include(p => p.Patient)
+                                  .Include(p => p.Employee)
+                                  .Include(p => p.VisitStatus)
+                                  .AsNoTracking()
                                   .Where(filter.FilterExpression)
                                   .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
                                   .AsQueryable();
@@ -67,6 +74,10 @@ namespace WebAPI.Controllers
             else
             {
                 visits = _context.Visits
+                                 .Include(p => p.Patient)
+                                 .Include(p => p.Employee)
+                                 .Include(p => p.VisitStatus)
+                                 .AsNoTracking()
                                  .Where(filter.FilterExpression)
                                  .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
                                  .AsQueryable();
@@ -78,6 +89,8 @@ namespace WebAPI.Controllers
 
             return new DataServiceResult<VisitDTO>(_mapper.Map<IEnumerable<VisitDTO>>(visits), count);
         }
+
+
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Visit>> GetVisit(int id)
@@ -91,6 +104,30 @@ namespace WebAPI.Controllers
 
             return Ok(_mapper.Map<VisitDTO>(visit));
         }
+
+        [Authorize(Roles = $"{Roles.DOCTOR}")]
+        [HttpGet("GetForDoctor")]
+        public async Task<ActionResult<ICollection<Visit>>> GetVisitsForDoctor(int doctorId, string startDate, string endDate)
+        {
+            var startDateOnly = DateOnly.ParseExact(startDate, "dd.MM.yyyy");
+            var endDateOnly = DateOnly.ParseExact(endDate, "dd.MM.yyyy");
+            if (doctorId == 0)
+            {
+                return NotFound();
+            }
+
+            var visit = _context.Visits.Include(p => p.Patient)
+                                                      .Where(p => p.EmployeeId == doctorId && p.VisitDate >= startDateOnly && (p.VisitDate == endDateOnly || p.VisitDate < endDateOnly))
+                                                      .AsQueryable();
+
+            if (visit == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<ICollection<VisitDTO>>(visit));
+        }
+
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutVisit(int id, VisitDTO visit)

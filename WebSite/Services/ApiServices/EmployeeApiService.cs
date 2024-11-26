@@ -15,8 +15,8 @@ namespace WebSite.Services.ApiServices
         Task<ResponseModel<DataServiceResult<EmployeeDTO>>> GetAsync(Dictionary<string, string> queryParameters);
         Task<ResponseModel<EmployeeDTO>> GetAsync(int id);
         Task<ResponseModel<IEnumerable<EmployeeDTO>>> GetForScheduleAsync(Dictionary<string, string> queryParameters);
-        Task<ResponseModel<string>> PostAsync(object data);
-        Task<ResponseModel<string>> PutAsync(int id, object data);
+        Task<ResponseModel<string>> PostAsync(EmployeeViewModel data);
+        Task<ResponseModel<string>> PutAsync(int id, EmployeeViewModel data);
         Task<ResponseModel<string>> DeleteAsync(int id);
     }
     public class EmployeeApiService : IEmployeeApiService
@@ -82,7 +82,7 @@ namespace WebSite.Services.ApiServices
             }
         }
 
-        public async Task<ResponseModel<string>> PostAsync(object data)
+        public async Task<ResponseModel<string>> PostAsync(EmployeeViewModel data)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             try
@@ -98,7 +98,7 @@ namespace WebSite.Services.ApiServices
             }
         }
 
-        public async Task<ResponseModel<string>> PutAsync(int id, object data)
+        public async Task<ResponseModel<string>> PutAsync(int id, EmployeeViewModel data)
         {
 
             HttpResponseMessage response = new HttpResponseMessage();
