@@ -95,7 +95,10 @@ namespace WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Visit>> GetVisit(int id)
         {
-            var visit = await _context.Visits.FirstOrDefaultAsync(p => p.Id == id);
+            var visit = await _context.Visits.Include(p => p.Employee).ThenInclude(p => p.Specialization)
+                .Include(p => p.Patient)
+                .Include(p => p.VisitStatus)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (visit == null)
             {
@@ -117,6 +120,7 @@ namespace WebAPI.Controllers
             }
 
             var visit = _context.Visits.Include(p => p.Patient)
+                                                      .Include(p => p.VisitStatus)
                                                       .Where(p => p.EmployeeId == doctorId && p.VisitDate >= startDateOnly && (p.VisitDate == endDateOnly || p.VisitDate < endDateOnly))
                                                       .AsQueryable();
 
@@ -134,7 +138,7 @@ namespace WebAPI.Controllers
         {
             if (id != visit.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             var visitDb = await _context.Visits.FirstOrDefaultAsync(p => p.Id == id);
@@ -145,10 +149,12 @@ namespace WebAPI.Controllers
             visitDb.VisitStatusId = visit.VisitStatusId;
             visitDb.EmployeeId = visit.EmployeeId;
             visitDb.VisirtTime = visit.VisirtTime;
+            visitDb.ServiceToVisits = visit.ServiceToVisits;
 
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -161,9 +167,51 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+         
             return Ok();
         }
+
+
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
+        [HttpPost("ChangeStatus")]
+        public async Task<IActionResult> ChangeVisitStatus(VisitStatusChangeViewModel data)
+        {
+
+            Console.WriteLine(data.VisitStatusId);
+
+            var visitDb = await _context.Visits.FirstOrDefaultAsync(p => p.Id == data.Id);
+
+            if (visitDb == null)
+                return NotFound();
+
+            if (data.VisitStatusId == (int)VisitStatuses.Waiting && visitDb.VisitStatusId != (int)VisitStatuses.Written)
+                return BadRequest("Для подтверждения записи статус записи должен быть 'Ожидание'");
+
+            if (data.VisitStatusId == (int)VisitStatuses.Compleated && visitDb.VisitStatusId != (int)VisitStatuses.Waiting)
+                return BadRequest("Для завершения записи статус записи записи должен быть 'Ожидание'");
+
+            if (data.VisitStatusId == (int)VisitStatuses.Canceled && (visitDb.VisitStatusId != (int)VisitStatuses.Written && visitDb.VisitStatusId != (int)VisitStatuses.Waiting))
+                return BadRequest("Для отмены записи статус записи должен быть 'Записан' или 'Ожидание'");
+
+            if (data.VisitStatusId == (int)VisitStatuses.NotCome && visitDb.VisitStatusId != (int)VisitStatuses.Written)
+                return BadRequest("Для пометки записи как 'Не пришёл' статус записи должен быть 'Записан'");
+
+            visitDb.VisitStatusId = data.VisitStatusId;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return BadRequest();
+            }
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+            return Ok();
+        }
+
+
+
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpPost]
         public async Task<ActionResult<Visit>> PostVisit(VisitDTO visit)
@@ -196,10 +244,16 @@ namespace WebAPI.Controllers
                 return NotFound();
             }
 
+            if (visit.VisitStatusId == (int)VisitStatuses.Compleated)
+                return BadRequest("Нельзя удалить завершённую запись");
+
+            if (visit.VisitStatusId == (int)VisitStatuses.Waiting)
+                return BadRequest("Нельзя удалить ожидающую запись");
+
             _context.Visits.Remove(visit);
             await _context.SaveChangesAsync();
-
-            return NoContent();
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+            return Ok();
         }
 
         private bool VisitExists(int id)

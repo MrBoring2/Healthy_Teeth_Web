@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Radzen;
 using Radzen.Blazor;
+using Shared.Constants;
 using Shared.DTO;
+using Shared.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,7 +22,13 @@ namespace WebSite.Pages
         [Inject]
         private HubConnection HubConnection { get; set; }
         [Inject]
+        private ContextMenuService ContextMenuService { get; set; }
+        [Inject]
+        private NotificationService NotificationService { get; set; }
+        [Inject]
         private IEmployeeApiService EmployeeApiService { get; set; }
+        [Inject]
+        private IVisitApiService VisitApiService { get; set; }
         [Inject]
         private ISpecializationApiService SpeciazaizationApiService { get; set; }
         [Inject]
@@ -80,7 +88,6 @@ namespace WebSite.Pages
             {
                 selectedEmployees = value;
                 GenerateTable(SelectedEmployees.ToList());
-                Console.WriteLine("Даныне зименены");
                 StateHasChanged();
             }
         }
@@ -111,16 +118,13 @@ namespace WebSite.Pages
             Console.WriteLine("Выбрано:" + SelectedEmployees?.Count);
             if (SelectedEmployees == null || SelectedEmployees?.Count == 0 || Employees.Count != tempCount)
             {
-                Console.WriteLine("Стандарт");
                 await GenerateTable(Employees);
-
             }
             else
             {
                 if (SelectedEmployees != null)
                 {
                     selectedEmployees = Employees.Where(p => SelectedEmployees.Select(e => e.Id).Contains(p.Id)).ToList();
-                    //StateHasChanged();
                 }
                 await GenerateTable(SelectedEmployees.ToList());
 
@@ -172,6 +176,7 @@ namespace WebSite.Pages
                     temp.Add(row);
                 }
                 Data = temp;
+                
                 IsLoading = false;
                 StateHasChanged();
             });
@@ -204,7 +209,7 @@ namespace WebSite.Pages
 
             var a = selectedCellData?.FirstOrDefault()?.Item2;
             var c = args.Column.UniqueID;
-           // Console.WriteLine(c);
+            // Console.WriteLine(c);
             var d = args.Data[c];
 
             if (d.StartTime <= d.TargetTime && d.EndTime.Value.AddMinutes(-30) >= d.TargetTime)
@@ -237,6 +242,69 @@ namespace WebSite.Pages
                });
 
         }
+
+        public async Task ChangeVisitStatus(int id, VisitStatuses visitStatus)
+        {
+            string text = "";
+            if (visitStatus == VisitStatuses.Waiting)
+                text = "Ожидание";
+            else if (visitStatus == VisitStatuses.NotCome)
+                text = "Не пришёл";
+            else if (visitStatus == VisitStatuses.Canceled)
+                text = "Отменена";
+
+
+            var confirm = await DialogService.Confirm($"Изменить статус на '{text}'?", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
+            if (confirm == true)
+            {
+                var visitStatusVM = new VisitStatusChangeViewModel(id, (int)visitStatus);
+                var response = await VisitApiService.ChangeVisitStatusAsync(visitStatusVM);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = "Запись успешно обновлена"
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = response.Content
+                    });
+                }
+
+            }
+        }
+
+        private void OnCellContextMenu(DataGridCellMouseEventArgs<Dictionary<string, ScheduleRegister>> args)
+        {
+            var c = args.Column.UniqueID;
+            var d = args.Data[c];
+
+            if (d.Data == null)
+                return;
+
+            ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Подтвердить запись", Value = 2, Icon = "check" },
+                new ContextMenuItem(){ Text = "Отменить запись", Value = 5, Icon = "block" },
+                new ContextMenuItem(){ Text = "Пометить запись как 'Не пришёл'", Value = 4, Icon = "person_remove" },
+            },
+            async (e) =>
+            {
+                await ChangeVisitStatus((d.Data as VisitDTO).Id, (VisitStatuses)e.Value);
+                //console.Log($"Menu item with Value={e.Value} clicked. Column: {args.Column.Property}, EmployeeID: {args.Data.EmployeeID}");
+            }
+         );
+        }
+
         private void OnCellRender(DataGridCellRenderEventArgs<Dictionary<string, ScheduleRegister>> args)
         {
             var c = args.Column.UniqueID;
@@ -249,7 +317,26 @@ namespace WebSite.Pages
             {
                 if (d.Data != null && d.Data.GetType() == typeof(VisitDTO))
                 {
-                    args.Attributes.Add("style", $"background-color: var(--rz-warning-light)");
+                    var visit = d.Data as VisitDTO;
+                    if (visit.VisitStatusId == (int)VisitStatuses.Waiting)
+                    {
+                        args.Attributes.Add("style", $"background-color: var(--rz-info-light)");
+                    }
+                    else if (visit.VisitStatusId == (int)VisitStatuses.Written)
+                    {
+                        args.Attributes.Add("style", $"background-color: var(--rz-warning-light)");
+                    }
+                    else if (visit.VisitStatusId == (int)VisitStatuses.Canceled)
+                    {
+                        args.Attributes.Add("style", $"background-color: var(--rz-danger-light)");
+                    }
+                    else if (visit.VisitStatusId == (int)VisitStatuses.Compleated)
+                    {
+                        args.Attributes.Add("style", $"background-color: var(--rz-success-light)");
+
+                    }
+
+
                 }
                 else if (d.Data == null && (d.StartTime == null || d.EndTime == null || d.StartTime > d.TargetTime || d.EndTime < d.TargetTime))
                 {
@@ -258,7 +345,7 @@ namespace WebSite.Pages
                 else if (d.StartTime <= d.TargetTime && d.EndTime.Value.AddMinutes(-30) >= d.TargetTime)
                 {
                     //args.Attributes.Add("style", $"background-color: {(d.StartTime <= d.TargetTime && d.EndTime >= d.TargetTime ? "var(--rz-info-light)" : "var(--rz-base-background-color)")};");
-                    args.Attributes.Add("style", $"background-color: var(--rz-info-light)");
+                    args.Attributes.Add("style", $"background-color: var(--rz-secondary-lighter)");
 
                 }
             }

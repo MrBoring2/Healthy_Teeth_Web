@@ -7,6 +7,7 @@ using WebSite.Providers;
 using System.Security.Claims;
 using WebSite.Models;
 using System.Collections.ObjectModel;
+using Shared.Constants;
 
 namespace WebSite.Pages
 {
@@ -14,6 +15,9 @@ namespace WebSite.Pages
     {
         [Inject]
         private HubConnection HubConnection { get; set; }
+
+        [Inject]
+        private DialogService DialogService { get; set; }
         [Inject]
         private IVisitApiService VisitApiService { get; set; }
         [Inject]
@@ -24,10 +28,11 @@ namespace WebSite.Pages
         {
             HubConnection.On<string>("VisitsChanged", async mes =>
             {
-                Console.WriteLine("Пришло сообщение");
+                LoadVisits(lastArgs);
+                scheduler.Reload();
             });
         }
-        private LoadDataArgs lastArgs;
+        private SchedulerLoadDataEventArgs lastArgs;
         RadzenScheduler<Appointment> scheduler;
         //EventConsole console;
         Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
@@ -47,10 +52,7 @@ namespace WebSite.Pages
         {
             StateHasChanged();
             var user = await CustomStateProvider.GetAuthenticationStateAsync();
-            foreach (var item in user.User.Claims)
-            {
-                Console.WriteLine(item.Value);
-            }
+
             var response = await VisitApiService.GetAsync(int.Parse(user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.NameIdentifier)?.Value),
                                                         DateOnly.FromDateTime(args.Start),
                                                         DateOnly.FromDateTime(args.End));
@@ -64,65 +66,51 @@ namespace WebSite.Pages
                     {
                         Start = new DateTime(item.VisitDate, item.VisirtTime),
                         End = new DateTime(item.VisitDate, item.VisirtTime.AddMinutes(30)),
-                        Text = $"{item.Patient.FullName}\n{item.VisitPurpose}"
+                        VisitStatusId = item.VisitStatusId,
+                        VisitId = item.Id,
+                        VisitPurpose = item.VisitPurpose,
+                        PatientFullName = item.Patient.FullName,
+                        Status = item.VisitStatus.Title
                     });
                 }
-                
+
             }
+            lastArgs = args;
             appointments = new List<Appointment>(list);
             //StateHasChanged();
-            
+
         }
 
-        void OnSlotRender(SchedulerSlotRenderEventArgs args)
+        private void OnSlotRender(SchedulerSlotRenderEventArgs args)
         {
-            //scheduler.
-            // Highlight today in month view
-            if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
-            {
-                args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
-            }
-
             // Highlight working hours (9-18)
             if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour >= 8 && args.Start.Hour <= 20)
             {
+
                 args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
             }
         }
 
-        async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+        private async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
         {
+            await DialogService.OpenAsync<VisitDetails>($"Посещение",
+              new Dictionary<string, object>() { { "VisitId", args.Data.VisitId } },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
 
+                  Width = "900px",
+                  Height = "720px"
+              });
         }
-
-        async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
-        {
-
-
-            
-        }
-
-        void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+        private void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
         {
             // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
 
-            if (args.Data.Text == "Birthday")
+            if (args.Data.VisitStatusId == (int)VisitStatuses.Waiting)
             {
-                args.Attributes["style"] = "background: red";
-            }
-        }
-
-        async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
-        {
-            var draggedAppointment = appointments.FirstOrDefault(x => x == args.Appointment.Data);
-
-            if (draggedAppointment != null)
-            {
-                draggedAppointment.Start = draggedAppointment.Start + args.TimeSpan;
-
-                draggedAppointment.End = draggedAppointment.End + args.TimeSpan;
-
-                await scheduler.Reload();
+                args.Attributes["style"] = "background-color: var(--rz-success-light)";
             }
         }
     }

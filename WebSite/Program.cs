@@ -16,6 +16,7 @@ using WebSite.Services.ApiServices;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+System.Linq.Dynamic.Core.ParsingConfig.Default.CustomTypeProvider = new MyCustomTypeProvider();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -36,6 +37,7 @@ builder.Services.AddRadzenCookieThemeService(options =>
     options.Name = "MyApp";
     options.Duration = TimeSpan.FromDays(7);
 });
+
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddTransient<IEmployeeApiService, EmployeeApiService>();
 builder.Services.AddTransient<IRoleApiService, RoleApiService>();

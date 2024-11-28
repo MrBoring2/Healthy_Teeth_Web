@@ -5,6 +5,8 @@ using Radzen;
 using Shared.DTO;
 using WebSite.Services.ApiServices;
 using Entities;
+using Shared.Constants;
+using Shared.Models;
 
 namespace WebSite.Pages
 {
@@ -14,8 +16,11 @@ namespace WebSite.Pages
         private HubConnection HubConnection { get; set; }
         [Inject]
         private DialogService DialogService { get; set; }
+
         [Inject]
         private NotificationService NotificationService { get; set; }
+        [Inject]
+        private TooltipService TooltipService { get; set; }
         [Inject]
 
         private IVisitApiService VisitApiService { get; set; }
@@ -96,8 +101,10 @@ namespace WebSite.Pages
             count = 10;
 
             await LoadVisitStatuses();
+
             HubConnection.On<string>("VisitsChanged", async mes =>
             {
+                Console.WriteLine("вфывфывфывфыыыыыыыыыыыыыыыыыыыыыыыыыыыыыы213123123123123");
                 await LoadData(lastArgs);
             });
         }
@@ -140,7 +147,7 @@ namespace WebSite.Pages
             }
             queryParameters.Add("startDate", StartDate.ToShortDateString());
             queryParameters.Add("endDate", EndDate.ToShortDateString());
-           
+
 
             if (!string.IsNullOrEmpty(args.OrderBy))
             {
@@ -180,12 +187,54 @@ namespace WebSite.Pages
             var response = await VisitApiService.GetAsync(queryParameters);
             list = response.Content.Items.AsODataEnumerable();
             count = response.Content.Count;
+            if (grid.CurrentPage * 10 >= count)
+                await grid.FirstPage();
             isLoading = false;
             StateHasChanged();
         }
+        private void ShowTooltip(ElementReference elementReference, TooltipOptions options = null) => TooltipService.Open(elementReference, options.Text, options);
+        public async Task ChangeVisitStatus(int id, VisitStatuses visitStatus)
+        {
+            string text = "";
+            if (visitStatus == VisitStatuses.Waiting)
+                text = "Ожидание";
+            else if (visitStatus == VisitStatuses.NotCome)
+                text = "Не пришёл";
+            else if (visitStatus == VisitStatuses.Canceled)
+                text = "Отменена";
+
+
+            var confirm = await DialogService.Confirm($"Изменить статус на '{text}'?", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
+            if (confirm == true)
+            {
+                var visitStatusVM = new VisitStatusChangeViewModel(id, (int)visitStatus);
+                var response = await VisitApiService.ChangeVisitStatusAsync(visitStatusVM);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = "Запись успешно обновлена"
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Duration = 2000,
+                        Summary = "Оповещение",
+                        Detail = response.Content
+                    });
+                }
+
+            }
+        }
         public async Task DeleteVisit(int id)
         {
-            var confirm = await DialogService.Confirm("Подтвердите удаление записи", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
+            var confirm = await DialogService.Confirm("Удалить запись?", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });
             if (confirm == true)
             {
                 var response = await VisitApiService.DeleteAsync(id);

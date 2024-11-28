@@ -66,7 +66,7 @@ namespace Data
             {
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.DateOfBirth).HasColumnType("date");
-                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""MiddleName"" || ' ' || ""LastName"")", stored: true);
+                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""LastName"" || ' ' || ""MiddleName"")", stored: true);
                 entity.HasIndex(p => p.FullName);
                 entity.HasOne(p => p.Specialization)
                       .WithMany(p => p.Employees)
@@ -92,7 +92,7 @@ namespace Data
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.HasKey(p => p.Id);
-                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""MiddleName"" || ' ' || ""LastName"")", stored: true);
+                entity.Property(p => p.FullName).HasComputedColumnSql(@"trim(""FirstName"" || ' ' || ""LastName"" || ' ' || ""MiddleName"")", stored: true);
                 entity.Property(p => p.Passport).HasComputedColumnSql(@"trim(""PassportCode"" || ' ' || ""PassportNumber"")", stored: true);
                 entity.HasIndex(p => p.FullName);
                 entity.HasIndex(p => p.Passport);

@@ -4,9 +4,10 @@ namespace WebAPI.Filters
 {
     public class ServiceFilter : IFilter<Service>
     {
-        public ServiceFilter(string? search, string? orderDirection, string? orderBy, int top, int skip)
+        public ServiceFilter(string? search, IEnumerable<int>? specializationIds, string? orderDirection, string? orderBy, int top, int skip)
         {
             Search = search;
+            SpecializationIds = specializationIds;
             OrderDirection = orderDirection;
             OrderBy = orderBy;
             Top = top;
@@ -16,6 +17,7 @@ namespace WebAPI.Filters
 
         public string? Search { get; set; }
         public string? OrderDirection { get; set; }
+        public IEnumerable<int>? SpecializationIds { get; set; }
         public string? OrderBy { get; set; }
         public int Top { get; set; }
         public int Skip { get; set; }
@@ -26,11 +28,15 @@ namespace WebAPI.Filters
                 return p =>
                 {
                     bool res1 = true;
+                    bool res2 = true;
 
                     if (!string.IsNullOrEmpty(Search))
                         res1 = p.Title.ToLower().Contains(Search.ToLower());
 
-                    if (!res1)
+                    if (SpecializationIds != null)
+                        res2 = SpecializationIds.Contains(p.SpecializationId);
+
+                    if (!res1 || !res2)
                         return false;
 
                     return true;

@@ -123,8 +123,11 @@ namespace WebAPI.Controllers
                                      .Where(p => p.SpecializationId == specializationId)
                                      .Include(p => p.Schedules)
                                      .Include(p => p.Visits
-                                     .Where(p => p.VisitDate == dateOnly))
-                                     .ThenInclude(p => p.Patient)
+                                        .Where(p => p.VisitDate == dateOnly))
+                                        .ThenInclude(p => p.Patient)
+                                     .Include(p => p.Visits
+                                        .Where(p => p.VisitDate == dateOnly))
+                                        .ThenInclude(p => p.VisitStatus)
                                      .AsQueryable();
 
             return Ok(employees);

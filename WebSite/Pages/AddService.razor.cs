@@ -1,6 +1,7 @@
 ﻿using Entities;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using Radzen.Blazor;
 using Shared.DTO;
 using Shared.Models;
 using System.Collections.ObjectModel;
@@ -83,7 +84,7 @@ namespace WebSite.Pages
 
         public void Cancel()
         {
-            NavigationManager.NavigateTo("/");
+            DialogService.Close();
         }
 
     }

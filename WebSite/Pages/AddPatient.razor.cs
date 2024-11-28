@@ -92,7 +92,8 @@ namespace WebSite.Pages
        
         public void Cancel()
         {
-            NavigationManager.NavigateTo("/");
+
+            DialogService.Close();
         }
     }
 }

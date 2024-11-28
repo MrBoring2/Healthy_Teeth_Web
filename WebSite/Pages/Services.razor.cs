@@ -19,11 +19,25 @@ namespace WebSite.Pages
         [Inject]
         private NotificationService NotificationService { get; set; }
         [Inject]
+        private ISpecializationApiService SpecalizationApiService { get; set; }
+        [Inject]
 
         private IServiceApiService ServiceApiService { get; set; }
         private ODataEnumerable<ServiceDTO> list;
         private IList<ServiceDTO> SelectedPatients { get; set; }
         private RadzenDataGrid<ServiceDTO> grid;
+        private List<SpecializationDTO> Specializations { get; set; }
+        private List<SpecializationDTO> selectedSpecializations;
+        private List<SpecializationDTO> SelectedSpecializations
+        {
+            get => selectedSpecializations;
+            set
+            {
+
+                selectedSpecializations = value;
+                LoadData(lastArgs);
+            }
+        }
         private string searchTitle;
         private string SearchTitle
         {
@@ -34,7 +48,7 @@ namespace WebSite.Pages
                 LoadData(lastArgs);
             }
         }
-       
+
         private bool isLoading;
         private LoadDataArgs lastArgs;
         private int count;
@@ -43,19 +57,11 @@ namespace WebSite.Pages
             searchTitle = string.Empty;
 
             count = 10;
-
+            await LoadSpecializations();
             HubConnection.On<string>("ServicesChanged", async mes =>
             {
                 await LoadData(lastArgs);
             });
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender)
-            {
-
-            }
         }
 
         private async Task LoadData(LoadDataArgs args)
@@ -68,8 +74,11 @@ namespace WebSite.Pages
             if (!string.IsNullOrEmpty(SearchTitle))
             {
                 queryParameters.Add("search", SearchTitle);
-            }          
-
+            }
+            if (SelectedSpecializations != null && SelectedSpecializations.Count > 0)
+            {
+                queryParameters.Add("spesializationIds", string.Join(',', SelectedSpecializations.Select(p => p.Id)));
+            }
             if (!string.IsNullOrEmpty(args.OrderBy))
             {
                 string[] filterOrderBy = args.OrderBy.Split(' ');
@@ -91,7 +100,7 @@ namespace WebSite.Pages
                 {
                     orderby = "Price";
                 }
-              
+
 
                 orderby += " " + move;
                 queryParameters.Add("orderby", orderby);
@@ -101,9 +110,23 @@ namespace WebSite.Pages
             var response = await ServiceApiService.GetAsync(queryParameters);
             list = response.Content.Items.AsODataEnumerable();
             count = response.Content.Count;
+            if (grid.CurrentPage * 10 >= count)
+                await grid.FirstPage();
             isLoading = false;
             StateHasChanged();
         }
+
+        private async Task LoadSpecializations()
+        {
+            var response = await SpecalizationApiService.GetAsync();
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                Specializations = response.Content.ToList();
+                selectedSpecializations = Specializations;
+            }
+        }
+
+
         public async Task DeleteService(int id)
         {
             var confirm = await DialogService.Confirm("Подтвердите удаление услуги", "Подтверждение", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" });

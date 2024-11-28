@@ -21,6 +21,10 @@
                         <RadzenFormField Text="Поиск по названию">
                             <RadzenTextBox Placeholder="Введите название услугиа" @bind-Value="@SearchTitle" />
                         </RadzenFormField>
+                        <RadzenFormField Text="Специализации">
+                            <RadzenDropDown @bind-Value=@SelectedSpecializations Data=@Specializations TextProperty="@nameof(SpecializationDTO.Title)" Name="DropDownMultipleChips"
+                                            Multiple=true AllowClear=true Placeholder="Выберите специализации" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано" />
+                        </RadzenFormField>
                     </RadzenStack>
                 </ChildContent>
             </RadzenPanel>

@@ -21,7 +21,7 @@
             </RadzenStack>
             <RadzenText Text="@DisplayedDate" TextAlign="TextAlign.Center" TextStyle="TextStyle.H5" />
             <RadzenDataGrid Data="@Data" GridLines="DataGridGridLines.Both" SelectionMode="DataGridSelectionMode.Single" TItem="Dictionary<string, ScheduleRegister>" CellDoubleClick="@OnCellDoubleClick"
-                            CellRender="OnCellRender" IsLoading="@IsLoading" LoadData=@LoadTable>
+                            CellRender="OnCellRender" IsLoading="@IsLoading" LoadData=@LoadTable CellContextMenu="@OnCellContextMenu">
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
                 </EmptyTemplate>
@@ -30,11 +30,22 @@
                     {
                         @foreach (var column in Columns)
                         {
-                            <RadzenDataGridColumn @key=@column.Key UniqueID="@column.Key" Title="@column.Value.ToString()">
-                                <Template Context="another">
-                                    <RadzenText TextAlign="TextAlign.Center">@another[@column.Key].Value</RadzenText>
-                                </Template>
-                            </RadzenDataGridColumn>
+                            @if (column.Key == "Время")
+                            {
+                                <RadzenDataGridColumn Frozen="true" @key=@column.Key UniqueID="@column.Key" Title="@column.Value.ToString()">
+                                    <Template Context="another">
+                                        <RadzenText TextAlign="TextAlign.Center">@another[@column.Key].Value</RadzenText>
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                            }
+                            else
+                            {
+                                <RadzenDataGridColumn @key=@column.Key MinWidth="250px" UniqueID="@column.Key" Title="@column.Value.ToString()">
+                                    <Template Context="another">
+                                        <RadzenText TextAlign="TextAlign.Center" Style="white-space:pre-wrap">@another[@column.Key].Value</RadzenText>
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                            }
                         }
                     }
                 </Columns>
@@ -45,3 +56,8 @@
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
+
+@code {
+  
+
+}

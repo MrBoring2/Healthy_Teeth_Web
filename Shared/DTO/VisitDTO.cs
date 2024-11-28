@@ -25,10 +25,11 @@ namespace Shared.DTO
         [Required]
         public int PatientId { get; set; }
         public int VisitStatusId { get; set; }
+        public DateTime FullDate => VisitDate == null ? new DateTime() : new DateTime(VisitDate, VisirtTime);
         public virtual VisitStatusDTO? VisitStatus { get; set; }
         public virtual EmployeeDTO? Employee { get; set; }
         public virtual PatientDTO? Patient { get; set; }
-        public virtual List<ServiceDTO> Services { get; set; } = [];
+        public virtual List<ServiceToVisit> ServiceToVisits { get; set; } = [];
         //public virtual List<ServiceToVisit> ServiceToVisits { get; set; } = [];
     }
 }

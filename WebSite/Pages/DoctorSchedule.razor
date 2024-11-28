@@ -1,11 +1,52 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
 @using WebSite.Models
 @page "/doctor-schedule"
+@inject TooltipService TooltipService
 
 <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End" LoadData="@LoadVisits"
-                 TextProperty="Text" SelectedIndex="0" NextText="Вперёд" PrevText="Назад" TodayText="Сегодня"
-                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender 
-                 AppointmentMove=@OnAppointmentMove  >
-    <RadzenDayView TimeFormat="HH:mm"  StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" />
-    <RadzenWeekView TimeFormat="HH:mm" StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" />
+                 TextProperty="Text" SelectedIndex="0" NextText="Вперёд" PrevText="Назад" TodayText="Сегодня" AppointmentMouseEnter=@OnAppointmentMouseEnter AppointmentMouseLeave=@OnAppointmentMouseLeave
+                 AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender>
+    <RadzenDayView TimeFormat="HH:mm" StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" Text="День"/>
+    <RadzenWeekView TimeFormat="HH:mm" StartTime="@StartTime" EndTime="@EndTime" MinutesPerSlot="30" Text="Неделя"/>
 </RadzenScheduler>
+
+
+@code {
+    void OnAppointmentMouseEnter(SchedulerAppointmentMouseEventArgs<Appointment> args)
+    {
+        TooltipService.Open(args.Element, ts =>
+    @<RadzenStack Orientation="Orientation.Vertical" Gap="0" class="rz-p-6" Style="min-width: 250px; max-width: 500px;">
+        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
+            Пациент: @args.Data.PatientFullName
+        </RadzenText>
+        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
+            Причина посещения: @args.Data.VisitPurpose
+        </RadzenText>
+        <RadzenText TextStyle="TextStyle.H6" class="rz-mb-4" Style="color: var(--rz-tooltip-color);">
+            Статус посещения: @args.Data.Status
+        </RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+                <strong>Начало</strong>
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+                @args.Data.Start.ToString("hh:mm ⋅ dddd, MMMM d")
+            </RadzenText>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color); width: 44px;">
+                <strong>Конец</strong>
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-tooltip-color);">
+                @args.Data.End.ToString("hh:mm ⋅ dddd, MMMM d")
+            </RadzenText>
+        </RadzenStack>
+    </RadzenStack>, new TooltipOptions { Position = TooltipPosition.Bottom, Duration = null });
+    }
+
+
+    void OnAppointmentMouseLeave(SchedulerAppointmentMouseEventArgs<Appointment> args)
+    {
+        TooltipService.Close();
+    }
+}

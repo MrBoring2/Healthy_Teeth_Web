@@ -12,6 +12,7 @@ namespace WebSite.Services.ApiServices
     public interface IServiceApiService
     {
         Task<ResponseModel<IEnumerable<ServiceDTO>>> GetAsync();
+        Task<ResponseModel<IEnumerable<ServiceDTO>>> GetForSpesializationAsync(int specializationId);
         Task<ResponseModel<DataServiceResult<ServiceDTO>>> GetAsync(Dictionary<string, string> queryParameters);
         Task<ResponseModel<ServiceDTO>> GetAsync(int id);
         Task<ResponseModel<string>> DeleteAsync(int id);
@@ -26,7 +27,20 @@ namespace WebSite.Services.ApiServices
         {
             _httpClient = httpClient;
         }
-
+        public async Task<ResponseModel<IEnumerable<ServiceDTO>>> GetForSpesializationAsync(int specializationId)
+        {
+            var response = await _httpClient.GetAsync($"api/Services/GetForSpecialization/{specializationId}");
+            try
+            {
+                var responseObjects = await response.Content.ReadAsStringAsync();
+                return new(response.StatusCode, JsonConvert.DeserializeObject<IEnumerable<ServiceDTO>>(responseObjects), "Не удалось получить данные");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new(System.Net.HttpStatusCode.BadRequest, null, "Не удалось получить данные");
+            }
+        }
         public async Task<ResponseModel<IEnumerable<ServiceDTO>>> GetAsync()
         {
             var response = await _httpClient.GetAsync("api/services");

@@ -38,7 +38,7 @@ namespace Shared.DTO
         public int SpecializationId { get; set; }
         public List<ScheduleDTO> Schedules {  get; set; } 
         public List<VisitDTO> Visits {  get; set; } 
-        public SpecializationDTO Specialization { get; set; }
-        public AccountDTO Account { get; set; }
+        public SpecializationDTO? Specialization { get; set; }
+        public AccountDTO? Account { get; set; }
     }
 }

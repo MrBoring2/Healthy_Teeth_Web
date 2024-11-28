@@ -134,7 +134,8 @@ namespace WebSite.Pages
             var response = await PatientApiService.GetAsync(queryParameters);
             list = response.Content.Items.AsODataEnumerable();
             count = response.Content.Count;
-            Console.WriteLine(count);
+            if (grid.CurrentPage * 10 >= count)
+                await grid.FirstPage();
             isLoading = false;
             StateHasChanged();
         }

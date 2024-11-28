@@ -16,6 +16,7 @@ using WebAPI.SignalR;
 using WebAPI.Filters;
 using WebAPI.Helpers;
 using Shared.Constants;
+using System.Data;
 
 namespace WebAPI.Controllers
 {
@@ -37,14 +38,15 @@ namespace WebAPI.Controllers
         // GET: api/Services
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
-        public async Task<ActionResult<DataServiceResult<ServiceDTO>>> GetServices(string? search, string? orderBy, string top, string skip)
+        public async Task<ActionResult<DataServiceResult<ServiceDTO>>> GetServices(string? search, string? spesializationIds, string? orderBy, string top, string skip)
         {
             var orderBySplit = orderBy?.Split(' ');
+            var spesIds = spesializationIds?.Split(',').Select(int.Parse);
 
             ServiceFilter filter;
             try
             {
-                filter = new ServiceFilter(search, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+                filter = new ServiceFilter(search, spesIds, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
             }
             catch (Exception ex)
             {
@@ -82,6 +84,20 @@ namespace WebAPI.Controllers
             services = services.Skip(filter.Skip).Take(filter.Top);
 
             return new DataServiceResult<ServiceDTO>(_mapper.Map<IEnumerable<ServiceDTO>>(services), count);
+        }
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
+        [HttpGet("GetForSpecialization/{spesializationid}")]
+        public async Task<ActionResult<Service>> GetServicesForSpeciazliation(int spesializationid)
+        {
+            Console.WriteLine("dasdasdasd " + spesializationid);
+            var services = _context.Services.Where(p => p.SpecializationId == spesializationid).AsQueryable();
+
+            if (services == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<IEnumerable<ServiceDTO>>(services));
         }
 
         // GET: api/Services/5

@@ -30,7 +30,7 @@ namespace WebSite.Models
                 if (Data != null && Data.GetType() == typeof(VisitDTO))
                 {
                     var data = (Data as VisitDTO);
-                    return (MarkupString)$"Пациент: {data.Patient.FullName}<br /> Цель визита: {data.VisitPurpose}";
+                    return (MarkupString)$"Пациент: {data.Patient.FullName}<br /> Цель визита: {data.VisitPurpose}<br /> Статус: {data.VisitStatus.Title}";
 
                 }
                 else if (Data == null && (StartTime == null || EndTime == null || StartTime > TargetTime || EndTime < TargetTime))
