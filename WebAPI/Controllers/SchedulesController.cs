@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Entities;
 using Data;
+using Shared.DTO;
 
 namespace WebAPI.Controllers
 {
@@ -47,41 +48,63 @@ namespace WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSchedule(int id, Schedule schedule)
         {
-            if (id != schedule.Id)
+            if (ModelState.IsValid)
             {
-                return BadRequest();
-            }
-
-            _context.Entry(schedule).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ScheduleExists(id))
+                if (id != schedule.Id)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                _context.Entry(schedule).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ScheduleExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         // POST: api/Schedules
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Schedule>> PostSchedule(Schedule schedule)
+        public async Task<ActionResult<Schedule>> PostSchedule(ScheduleDTO schedule)
         {
-            _context.Schedules.Add(schedule);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                var dbSchedule = new Schedule()
+                {
+                    Cabinet = schedule.Cabinet,
+                    EmployeeId = schedule.EmployeeId,
+                    TimeFrom = schedule.TimeFrom,
+                    TimeTo = schedule.TimeTo,
+                    Weekday = schedule.Weekday
+                };
+                _context.Schedules.Add(dbSchedule);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSchedule", new { id = schedule.Id }, schedule);
+                return CreatedAtAction("GetSchedule", new { id = schedule.Id }, schedule);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         // DELETE: api/Schedules/5

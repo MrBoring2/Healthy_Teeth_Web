@@ -10,11 +10,13 @@ namespace Shared.DTO
     public class ServiceDTO
     {
         public int Id { get; set; }
-        [Required]
+        [MaxLength(80, ErrorMessage = "Максимальная длина 80 символов")]
+        [Required(ErrorMessage = "Поле Название обязательно для заполнения")]
         public string Title { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Цена обязательно для заполнения")]
+        [Range(1, 1000000, ErrorMessage = "Поле Цена должна быть впределах 1-1000000")]
         public float Price { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Специализация обязательно для заполнения")]
         public int SpecializationId { get; set; }
         public SpecializationDTO? Specialization { get; set; }
     }

@@ -33,6 +33,7 @@ namespace WebSite.Pages
         }
         protected override async Task OnInitializedAsync()
         {
+            service.Price = 1;
             await LoadSpecializations();
         }
         private async Task LoadSpecializations()
@@ -42,9 +43,14 @@ namespace WebSite.Pages
             {
                 Specializations = response.Content.ToList();
                 Specializations.Remove(Specializations.FirstOrDefault(p => p.Title == "Нет"));
+                if(service.SpecializationId == 0)
+                {
+                    service.SpecializationId = Specializations.FirstOrDefault().Id;
+                }
+              
             }
         }
-        protected async Task SaveService()
+        public async Task OnSubmit(ServiceDTO service)
         {
             ResponseModel<string> responseModel;
             if (service.Id != 0)
@@ -58,14 +64,37 @@ namespace WebSite.Pages
 
             if (responseModel.StatusCode == System.Net.HttpStatusCode.Created || responseModel.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = "Услуга успешно сохранена"
+                });
+                DialogService.Close(true);
                 DialogService.Close(true);
             }
             else
             {
-
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = responseModel.Content
+                });
             }
         }
-
+        public async Task OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Duration = 2000,
+                Summary = "Оповещение",
+                Detail = "Неверно заполнены данные"
+            });
+        }
         private async Task LoadService()
         {
             if (ServiceId != 0)

@@ -121,13 +121,13 @@ namespace WebAPI.Controllers
             var dateOnly = DateOnly.ParseExact(date, "dd.MM.yyyy");
             var employees = _context.Employees
                                      .Where(p => p.SpecializationId == specializationId)
-                                     .Include(p => p.Schedules)
+                                     .Include(p => p.Schedules).AsNoTracking()
                                      .Include(p => p.Visits
                                         .Where(p => p.VisitDate == dateOnly))
-                                        .ThenInclude(p => p.Patient)
+                                        .ThenInclude(p => p.Patient).AsNoTracking()
                                      .Include(p => p.Visits
                                         .Where(p => p.VisitDate == dateOnly))
-                                        .ThenInclude(p => p.VisitStatus)
+                                        .ThenInclude(p => p.VisitStatus).AsNoTracking()
                                      .AsQueryable();
 
             return Ok(employees);
@@ -139,12 +139,31 @@ namespace WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEmployee(int id, EmployeeViewModel employee)
         {
+            if (!ModelState.IsValid)
+            {
+                if (employee.ChangePassword == false)
+                {
+                    return BadRequest("Данные не прошли проверку");
+                }
+            }
+
+            if (employee.ChangePassword == true && string.IsNullOrEmpty(employee.Password))
+            {
+                return BadRequest("Поле пароль не заполнено");
+            }
+
             if (id != employee.Id)
             {
                 return BadRequest();
             }
 
             var employeeDb = await _context.Employees.Include(p => p.Account).Include(p => p.Schedules).FirstOrDefaultAsync(p => p.Id == id);
+
+            if (employeeDb.Id != employee.Id && employeeDb.Account.Login == employee.Login)
+            {
+                return BadRequest("Пользователь с таким логином уже существует");
+            }
+
             employeeDb.FirstName = employee.FirstName;
             employeeDb.LastName = employee.LastName;
             employeeDb.MiddleName = employee.MiddleName;
@@ -154,7 +173,6 @@ namespace WebAPI.Controllers
             employeeDb.SpecializationId = employee.SpecializationId;
             employeeDb.Account.Login = employee.Login;
             employeeDb.Account.RoleId = employee.RoleId;
-            Console.WriteLine(employee.Schedules.Count);
             employeeDb.Schedules = _mapper.Map<IEnumerable<Schedule>>(employee.Schedules).ToList();
             if (employee.ChangePassword)
             {
@@ -181,7 +199,10 @@ namespace WebAPI.Controllers
             }
             await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
             return Ok();
+
+
         }
+
 
         // POST: api/Employees
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -189,31 +210,46 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
-            byte[] passwordHash, passwordSalt;
-            PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
-            var dbEmployee = new Employee()
+            if (ModelState.IsValid)
             {
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                MiddleName = employee.MiddleName,
-                DateOfBirth = employee.DateOfBirth,
-                Gender = employee.Gender,
-                Phone = employee.Phone,
-                SpecializationId = employee.SpecializationId,
-                Account = new Account
+                if (string.IsNullOrEmpty(employee.Password))
                 {
-                    Login = employee.Login,
-                    PasswordHash = passwordHash,
-                    PasswordSalt = passwordSalt,
-                    RoleId = employee.RoleId
+                    return BadRequest("Поле пароль не заполнено");
                 }
-            };
-            _context.Employees.Add(dbEmployee);
-            await _context.SaveChangesAsync();
+                if (_context.Employees.Include(p => p.Account).FirstOrDefault(p => p.Account.Login == employee.Login) != null)
+                {
+                    return BadRequest("Пользователь с таким логином уже существует");
+                }
+                byte[] passwordHash, passwordSalt;
+                PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
+                var dbEmployee = new Employee()
+                {
+                    FirstName = employee.FirstName,
+                    LastName = employee.LastName,
+                    MiddleName = employee.MiddleName,
+                    DateOfBirth = employee.DateOfBirth,
+                    Gender = employee.Gender,
+                    Phone = employee.Phone,
+                    SpecializationId = employee.SpecializationId,
+                    Account = new Account
+                    {
+                        Login = employee.Login,
+                        PasswordHash = passwordHash,
+                        PasswordSalt = passwordSalt,
+                        RoleId = employee.RoleId
+                    }
+                };
+                _context.Employees.Add(dbEmployee);
+                await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
 
-            return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
+                return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         [Authorize(Roles = $"{Roles.ADMIN}")]

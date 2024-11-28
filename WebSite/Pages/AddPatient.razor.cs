@@ -36,6 +36,7 @@ namespace WebSite.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            patient.Gender = 0;
             Genders = new List<Gender>
             {
                 new Gender{ Id = 0, Title = "Мужской"},
@@ -43,7 +44,7 @@ namespace WebSite.Pages
             };
         }
 
-        protected async Task SaveUser()
+        public async Task OnSubmit(PatientDTO patient)
         {
             ResponseModel<string> responseModel;
             if (patient.Id != 0)
@@ -57,14 +58,36 @@ namespace WebSite.Pages
 
             if (responseModel.StatusCode == System.Net.HttpStatusCode.Created || responseModel.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = "Пациент успешно сохранён"
+                });
                 DialogService.Close(true);
             }
             else
             {
-
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = responseModel.Content
+                });
             }
         }
-      
+        public async Task OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Duration = 2000,
+                Summary = "Оповещение",
+                Detail = "Неверно заполнены данные"
+            });
+        }
         private async Task LoadPatient()
         {
             if (PatientId != 0)

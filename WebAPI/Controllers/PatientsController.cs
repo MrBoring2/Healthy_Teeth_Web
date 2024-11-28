@@ -97,67 +97,80 @@ namespace WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPatient(int id, PatientDTO patient)
         {
-            if (id != patient.Id)
+            if (ModelState.IsValid)
             {
-                return BadRequest();
-            }
-
-            var patientDb = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
-            patientDb.FirstName = patient.FirstName;
-            patientDb.LastName = patient.LastName;
-            patientDb.MiddleName = patient.MiddleName;
-            patientDb.DateOfBirth = patient.DateOfBirth;
-            patientDb.Gender = patient.Gender;
-            patientDb.Phone = patient.Phone;
-            patientDb.Address = patient.Address;
-            patientDb.City = patient.City;
-            patientDb.PassportNumber = patient.PassportNumber;
-            patientDb.PassportCode = patient.PassportCode;
-            patientDb.MedicalPolicy = patient.MedicalPolicy;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PatientExists(id))
+                if (id != patient.Id)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
-                else
+
+                var patientDb = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
+                patientDb.FirstName = patient.FirstName;
+                patientDb.LastName = patient.LastName;
+                patientDb.MiddleName = patient.MiddleName;
+                patientDb.DateOfBirth = patient.DateOfBirth;
+                patientDb.Gender = patient.Gender;
+                patientDb.Phone = patient.Phone;
+                patientDb.Address = patient.Address;
+                patientDb.City = patient.City;
+                patientDb.PassportNumber = patient.PassportNumber;
+                patientDb.PassportCode = patient.PassportCode;
+                patientDb.MedicalPolicy = patient.MedicalPolicy;
+
+                try
                 {
-                    throw;
+                    await _context.SaveChangesAsync();
                 }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PatientExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                return Ok();
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
-            return Ok();
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(PatientDTO patient)
         {
-
-            var dbPatient = new Patient()
+            if (ModelState.IsValid)
             {
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
-                MiddleName = patient.MiddleName,
-                DateOfBirth = patient.DateOfBirth,
-                Gender = patient.Gender,
-                Phone = patient.Phone,
-                Address = patient.Address,
-                City = patient.City,
-                MedicalPolicy = patient.MedicalPolicy,
-                PassportCode = patient.PassportCode,
-                PassportNumber = patient.PassportNumber
-            };
-            _context.Patients.Add(dbPatient);
-            await _context.SaveChangesAsync();
+                var dbPatient = new Patient()
+                {
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    MiddleName = patient.MiddleName,
+                    DateOfBirth = patient.DateOfBirth,
+                    Gender = patient.Gender,
+                    Phone = patient.Phone,
+                    Address = patient.Address,
+                    City = patient.City,
+                    MedicalPolicy = patient.MedicalPolicy,
+                    PassportCode = patient.PassportCode,
+                    PassportNumber = patient.PassportNumber
+                };
+                _context.Patients.Add(dbPatient);
+                await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
 
-            return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
+                return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]

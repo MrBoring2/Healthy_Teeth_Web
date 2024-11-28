@@ -64,9 +64,10 @@ namespace WebSite.Pages
 
         }
 
-        protected async Task SaveUser()
+        public async Task OnSubmit(EmployeeViewModel employee)
         {
             ResponseModel<string> responseModel;
+
             employee.Schedules = schedules.ToList();
             if (employee.Id != 0)
             {
@@ -79,11 +80,24 @@ namespace WebSite.Pages
 
             if (responseModel.StatusCode == System.Net.HttpStatusCode.Created || responseModel.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = "Сотрудник успешно сохранён"
+                });
                 DialogService.Close(true);
             }
             else
             {
-
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = responseModel.Content
+                });
             }
         }
         private async Task LoadRoles()
@@ -92,6 +106,7 @@ namespace WebSite.Pages
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Roles = response.Content.ToList();
+                employee.RoleId = Roles.First().Id;
             }
             else
             {
@@ -131,18 +146,19 @@ namespace WebSite.Pages
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Specializations = response.Content.ToList();
+                employee.SpecializationId = Specializations.First().Id;
             }
         }
         public async Task AddSchedule()
         {
-            ScheduleDTO schedule = await DialogService.OpenAsync<AddSchedule>($"Добавление",
+            ScheduleDTO schedule = await DialogService.OpenAsync<AddSchedule>($"Добавление рассписания",
               new Dictionary<string, object>() { { "ScheduleId", 0 } },
               new DialogOptions()
               {
                   Resizable = true,
                   Draggable = true,
 
-                  Width = "300px",
+                  Width = "400px",
                   Height = "500px"
               });
             if (schedule == null)
@@ -161,7 +177,16 @@ namespace WebSite.Pages
             schedules.Remove(schedules.FirstOrDefault(p => p.Weekday == weekday));
             schedules = new ObservableCollection<ScheduleDTO>(schedules.OrderBy(p => p.Weekday));
         }
-
+        public async Task OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Duration = 2000,
+                Summary = "Оповещение",
+                Detail = "Неверно заполнены данные"
+            });
+        }
         public void Cancel()
         {
             NavigationManager.NavigateTo("/");

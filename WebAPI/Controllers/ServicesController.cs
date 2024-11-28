@@ -121,53 +121,67 @@ namespace WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutService(int id, ServiceDTO service)
         {
-            if (id != service.Id)
+            if (ModelState.IsValid)
             {
-                return NotFound();
-            }
-
-            var serviceDb = await _context.Services.FirstOrDefaultAsync(p => p.Id == id);
-            serviceDb.Title = service.Title;
-            serviceDb.Price = service.Price;
-            serviceDb.SpecializationId = service.SpecializationId;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ServiceExists(id))
+                if (id != service.Id)
                 {
                     return NotFound();
                 }
-                else
+
+                var serviceDb = await _context.Services.FirstOrDefaultAsync(p => p.Id == id);
+                serviceDb.Title = service.Title;
+                serviceDb.Price = service.Price;
+                serviceDb.SpecializationId = service.SpecializationId;
+
+                try
                 {
-                    throw;
+                    await _context.SaveChangesAsync();
                 }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ServiceExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
+                return Ok();
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
-            return Ok();
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         // POST: api/Services
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPost]
-        public async Task<ActionResult<ServiceDTO>> PostService(ServiceViewModel service)
+        public async Task<ActionResult<ServiceDTO>> PostService(ServiceDTO service)
         {
-            var serviceDb = new Service
+            if (ModelState.IsValid)
             {
-                Price = service.Price,
-                SpecializationId = service.SpecializationId,
-                Title = service.Title
-            };
-            _context.Services.Add(serviceDb);
-            await _context.SaveChangesAsync();
+                var serviceDb = new Service
+                {
+                    Price = service.Price,
+                    SpecializationId = service.SpecializationId,
+                    Title = service.Title
+                };
+                _context.Services.Add(serviceDb);
+                await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
 
-            return CreatedAtAction("GetService", new { id = service.Id }, service);
+                return CreatedAtAction("GetService", new { id = service.Id }, service);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
         // DELETE: api/Services/5

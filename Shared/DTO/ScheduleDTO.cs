@@ -11,15 +11,16 @@ namespace Shared.DTO
     public class ScheduleDTO
     {
         public int Id { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Начало смены обязательно для заполнения")]
         public TimeOnly TimeFrom { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Конец смены обязательно для заполнения")]
         public TimeOnly TimeTo { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Кабинет обязательно для заполнения")]
+        [Range(0, 1000, ErrorMessage = "Кабинет должен быть в ределах 0-1000")]
         public int Cabinet { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле День недели обязательно для заполнения")]
         public int Weekday { get; set; }
-        [Required]
+        [Required(ErrorMessage = "Поле Сотрудник обязательно для заполнения")]
         public int EmployeeId { get; set; }
         
         public string WeekdayName

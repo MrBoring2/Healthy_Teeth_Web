@@ -169,7 +169,7 @@ namespace WebSite.Pages
         }
         public async Task OpenPatientWindow()
         {
-            await DialogService.OpenAsync<AddPatient>($"Добавление",
+            await DialogService.OpenAsync<AddPatient>($"Добавление пациента",
                new Dictionary<string, object>() { { "PatientId", 0 } },
                new DialogOptions()
                {
@@ -184,7 +184,7 @@ namespace WebSite.Pages
 
         public async Task OpenEditPatientWindow(int id)
         {
-            await DialogService.OpenAsync<AddPatient>($"Редактирование",
+            await DialogService.OpenAsync<AddPatient>($"Редактирование пациента",
              new Dictionary<string, object>() { { "PatientId", id } },
              new DialogOptions()
              {

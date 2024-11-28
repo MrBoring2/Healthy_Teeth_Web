@@ -61,14 +61,8 @@ builder.Services.AddScoped(sp =>
     {
         options.AccessTokenProvider = async () =>
         {
-            Console.WriteLine(authHttpService is null);
-
             var accessTokenResult = await authHttpService.GetAccessTokenAsync();
-
-            Console.WriteLine("ТОкен получен: " + accessTokenResult);
             return accessTokenResult;
-            // return "";
-
         };
     })
     .WithAutomaticReconnect()

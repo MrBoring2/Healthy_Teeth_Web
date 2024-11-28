@@ -4,6 +4,7 @@ using Radzen.Blazor;
 using Radzen;
 using Shared.DTO;
 using WebSite.Services.ApiServices;
+using WebSite.Models;
 
 namespace WebSite.Pages
 {
@@ -31,6 +32,7 @@ namespace WebSite.Pages
         private ODataEnumerable<PatientDTO> list;
         public string VisitPurpose { get; set; }
         private IList<PatientDTO> selectedPatients;
+        private VisitDTO visit = new VisitDTO();
         private IList<PatientDTO> SelectedPatients
         {
             get => selectedPatients;
@@ -83,11 +85,11 @@ namespace WebSite.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            visit.VisirtTime = VisitTime;
+            visit.VisitDate = VisitDate;
+          
             selectedPatients = new List<PatientDTO>();
             fullName = string.Empty;
-            Console.WriteLine("Id " + EmployeeId);
-            Console.WriteLine("Time " + VisitTime);
-            Console.WriteLine("Date " + VisitDate);
             count = 10;
             await LoadEmployee();
             HubConnection.On<string>("PatientsChanged", async mes =>
@@ -102,7 +104,7 @@ namespace WebSite.Pages
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Employee = response.Content;
-                Console.WriteLine(Employee.FirstName);
+                visit.Employee = Employee;
                 StateHasChanged();
             }
         }
@@ -203,23 +205,48 @@ namespace WebSite.Pages
             }
         }
 
-        public async Task SaveVisit()
+        public async Task OnSubmit(VisitDTO visit)
         {
-            var visit = new VisitDTO
-            {
-                EmployeeId = EmployeeId,
-                PatientId = SelectedPatients.FirstOrDefault().Id,
-                VisirtTime = VisitTime,
-                VisitDate = VisitDate,
-                VisitPurpose = VisitPurpose
-            };
+ 
+
+            visit.Employee = null;
+            visit.PatientId = SelectedPatients.FirstOrDefault().Id;
+            visit.EmployeeId = EmployeeId;
             var response = await VisitApiService.PostAsync(visit);
-            if(response.StatusCode == System.Net.HttpStatusCode.Created)
+            if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = "Услуга успешно сохранена"
+                });
+                DialogService.Close(true);
                 DialogService.Close(true);
             }
+            else
+            {
+                visit.Employee = Employee;
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Duration = 2000,
+                    Summary = "Оповещение",
+                    Detail = response.Content
+                });
+            }
         }
-
+        public async Task OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Duration = 2000,
+                Summary = "Оповещение",
+                Detail = "Неверно заполнены данные"
+            });
+        }
         public async Task OpenPatientWindow()
         {
             await DialogService.OpenAsync<AddPatient>($"Добавление",

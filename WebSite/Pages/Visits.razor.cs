@@ -104,7 +104,6 @@ namespace WebSite.Pages
 
             HubConnection.On<string>("VisitsChanged", async mes =>
             {
-                Console.WriteLine("вфывфывфывфыыыыыыыыыыыыыыыыыыыыыыыыыыыыыы213123123123123");
                 await LoadData(lastArgs);
             });
         }

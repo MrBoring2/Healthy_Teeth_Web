@@ -142,7 +142,6 @@ namespace WebSite.Pages
                 Columns = new Dictionary<string, object>();
                 if (Columns.Count == 0)
                     Columns.Add("Время", "Время");
-                Console.WriteLine("Столбец время доабвлен");
                 foreach (var item in employees)
                 {
                     Columns.Add(item.Id.ToString(), item.FullName);
@@ -204,8 +203,6 @@ namespace WebSite.Pages
             {
                 selectedCellData.Add(new Tuple<Dictionary<string, ScheduleRegister>, RadzenDataGridColumn<Dictionary<string, ScheduleRegister>>>(args.Data, args.Column));
             }
-            Console.WriteLine("dsadasdasd");
-
 
             var a = selectedCellData?.FirstOrDefault()?.Item2;
             var c = args.Column.UniqueID;
@@ -335,7 +332,11 @@ namespace WebSite.Pages
                         args.Attributes.Add("style", $"background-color: var(--rz-success-light)");
 
                     }
+                    else if (visit.VisitStatusId == (int)VisitStatuses.NotCome)
+                    {
+                        args.Attributes.Add("style", $"background-color: var(--rz-danger-light)");
 
+                    }
 
                 }
                 else if (d.Data == null && (d.StartTime == null || d.EndTime == null || d.StartTime > d.TargetTime || d.EndTime < d.TargetTime))

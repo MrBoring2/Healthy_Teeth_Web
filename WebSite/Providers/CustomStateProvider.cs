@@ -33,14 +33,7 @@ namespace WebSite.Providers
             var result = await _authHttpService.LoginAsync(loginViewModel);
             if (result.Success)
             {
-                //var authUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
-                //{
-                //    new Claim(ClaimTypes.Name, loginViewModel.Login)
-                //    new Claim(ClaimTypes.Role, Utils.Utils.ParseClaimsFromJwt(accessToken))
-                //}, "apiauth"));
                 var authState = Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(Utils.Utils.ParseClaimsFromJwt(result.JwtBearer), "jwt"))));
-                //Console.WriteLine(authState.Result.User.Identity.IsAuthenticated);
-                //Console.WriteLine(authState.Result.User.Claims.First(p => p.Type == ClaimTypes.Role).Value);
                 NotifyAuthenticationStateChanged(authState);
             }
 

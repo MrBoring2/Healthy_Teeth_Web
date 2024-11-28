@@ -157,7 +157,7 @@ namespace WebSite.Pages
         }
         public async Task OpenServiceWindow()
         {
-            await DialogService.OpenAsync<AddService>($"Добавление",
+            await DialogService.OpenAsync<AddService>($"Добавление услуги",
                new Dictionary<string, object>() { { "ServiceId", 0 } },
                new DialogOptions()
                {
@@ -165,14 +165,14 @@ namespace WebSite.Pages
                    Draggable = true,
 
                    Width = "500px",
-                   Height = "720px"
+                   Height = "450px"
                });
 
         }
 
         public async Task OpenEditServiceWindow(int id)
         {
-            await DialogService.OpenAsync<AddService>($"Редактирование",
+            await DialogService.OpenAsync<AddService>($"Редактирование услуги",
              new Dictionary<string, object>() { { "ServiceId", id } },
              new DialogOptions()
              {
@@ -180,7 +180,7 @@ namespace WebSite.Pages
                  Draggable = true,
 
                  Width = "500px",
-                 Height = "720px"
+                 Height = "450px"
              });
         }
     }

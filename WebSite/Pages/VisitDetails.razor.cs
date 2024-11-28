@@ -51,13 +51,19 @@ namespace WebSite.Pages
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 visit = response.Content;
+                if (visit.ServiceToVisits.Count != 0)
+                {
+                    foreach (var item in visit.ServiceToVisits)
+                    {
+                        SelectedServices.Add(new ServiceInVisit { Service = item.Service, Quantity = item.Count });
+                    }
+                }
             }
             else
             {
                 return;
             }
             StateHasChanged();
-            Console.WriteLine(visit.VisitDate);
         }
         private async Task LoadServices()
         {
@@ -104,8 +110,11 @@ namespace WebSite.Pages
             }
 
 
-            arg.ServiceToVisits = SelectedServices.Select(p => new ServiceToVisit { ServiceId = p.Service.Id, Count = p.Quantity }).ToList();
+            arg.ServiceToVisits = SelectedServices.Select(p => new ServiceToVisitDTO { ServiceId = p.Service.Id, Count = p.Quantity }).ToList();
             arg.VisitStatusId = (int)VisitStatuses.Compleated;
+
+            Console.WriteLine(arg.VisitPurpose);
+            Console.WriteLine(arg.VisitDiagnos);
             ResponseModel<string> responseModel = await VisitApiService.PutAsync(arg.Id, arg);
 
             if (responseModel.StatusCode == System.Net.HttpStatusCode.Created || responseModel.StatusCode == System.Net.HttpStatusCode.OK)

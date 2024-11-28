@@ -128,17 +128,23 @@ namespace WebSite.Services
             try
             {
                 var response = await _httpClient.PostAsJsonAsync("api/Authentication/Login", loginViewModel);
-                result = JsonConvert.DeserializeObject<LoginResponse>(await response.Content.ReadAsStringAsync());
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    result = JsonConvert.DeserializeObject<LoginResponse>(await response.Content.ReadAsStringAsync());
+                    await SetAccessTokenAsync(result?.JwtBearer, result?.RefreshJwtBearer);
+                }
+                else
+                {
+                    result = new LoginResponse
+                    {
+                        Success = false
+                    };
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-
-
-            await SetAccessTokenAsync(result?.JwtBearer, result?.RefreshJwtBearer);
-
-
             return result;
         }
 
@@ -149,7 +155,7 @@ namespace WebSite.Services
             LogoutResponse result = null;
             try
             {
-                var token = await _localStorage.GetItemAsync<string>("accessToken");
+                var token = await GetAccessTokenAsync();
                 var claims = Utils.Utils.ParseClaimsFromJwt(token);
                 request.Login = claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);

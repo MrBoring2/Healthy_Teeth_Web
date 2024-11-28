@@ -94,24 +94,6 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-
-
-        }
-
-        // var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        // //Console.WriteLine($"Токен: {auth}");
-
-        // //Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
-        // if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
-        // {
-        //     await _authProvider.GetAuthenticationStateAsync();
-        // }
-
-    }
     private async Task OnItemClicked(MenuItemEventArgs args)
     {
         Path = args.Path;

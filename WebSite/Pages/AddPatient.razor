@@ -7,55 +7,121 @@
 @using WebSite.Models
 @using WebSite.Providers
 @using WebSite.Services
-@* @page "/" *@
 @inject NavigationManager NavigationManager
-<h1>Карточка пациента</h1>
 <hr />
 <CascadingAuthenticationState>
     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")">
         <Authorized>
-            <EditForm Model="@patient" Context="editContext" OnValidSubmit="SaveUser">
-                <RadzenStack>
-                    <RadzenFormField Text="Фамилия">
-                        <RadzenTextBox Placeholder="Фамилия" @bind-Value="@patient.FirstName" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Имя">
-                        <RadzenTextBox Placeholder="Имя" @bind-Value="@patient.MiddleName" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Отчество">
-                        <RadzenTextBox Placeholder="Отчество" @bind-Value="@patient.LastName" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Телефон">
-                        <RadzenMask Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@patient.Phone" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Серия паспорта">
-                        <RadzenMask Mask="****" CharacterPattern="[0-9]" Placeholder="0000" Name="Phone" @bind-Value="@patient.PassportCode" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Номер паспорта">
-                        <RadzenMask Mask="******" CharacterPattern="[0-9]" Placeholder="000000" Name="Phone" @bind-Value="@patient.PassportNumber" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Медицинский полис">
-                        <RadzenMask Mask="****************" CharacterPattern="[0-9]" Placeholder="0000000000000000" Name="Phone" @bind-Value="@patient.MedicalPolicy" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Пол">
-                        <RadzenDropDown Placeholder="Выберите пол" Data="@Genders" @bind-Value=@patient.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Дата рождения">
-                        <RadzenDatePicker Placeholder="Дата рождения" DateFormat="dd.MM.yyyy" @bind-Value="@patient.DateOfBirth" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Город">
-                        <RadzenTextBox Placeholder="Город" @bind-Value="@patient.City" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Адрес">
-                        <RadzenTextBox Placeholder="Адрес" @bind-Value="@patient.Address" />
-                    </RadzenFormField>
+            <RadzenTemplateForm Data="@patient" TItem="PatientDTO" Context="editContext" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Фамилия" Component="FirstName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Фамилия" @bind-Value="@patient.FirstName" Name="FirstName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="FirstName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Имя" Component="MiddleName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Имя" @bind-Value="@patient.MiddleName" Name="MiddleName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="MiddleName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Отчество" Component="LastName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Отчество" @bind-Value="@patient.LastName" Name="LastName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="LastName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Телефон" Component="Phone" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenMask Style="display: block" Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@patient.Phone" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Phone" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Код паспорта" Component="PassportCode" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenMask Style="display: block" Mask="****" CharacterPattern="[0-9]" Placeholder="0000" Name="PassportCode" @bind-Value="@patient.PassportCode" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="PassportCode" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Номер паспорта" Component="PassportNumber" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenMask Style="display: block" Mask="******" CharacterPattern="[0-9]" Placeholder="000000" Name="PassportNumber" @bind-Value="@patient.PassportNumber" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="PassportNumber" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-MedicalPolicy rz-text-align-md-end">
+                            <RadzenLabel Text="Медицинский полис" Component="PassportNumber" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenMask Style="display: block" Mask="****************" CharacterPattern="[0-9]" Placeholder="0000000000000000" Name="MedicalPolicy" @bind-Value="@patient.MedicalPolicy" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="MedicalPolicy" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Пол" Component="Gender" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите пол" Data="@Genders" Name="Gender" @bind-Value=@patient.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
+                            <RadzenDataAnnotationValidator Component="Gender" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Дата рождения" Component="DateOfBirth" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDatePicker Style="display: block" Placeholder="Дата рождения" Name="DateOfBirth" DateFormat="dd.MM.yyyy" @bind-Value="@patient.DateOfBirth" />
+                            <RadzenDataAnnotationValidator Component="DateOfBirth" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Город" Component="City" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Город" Name="City" @bind-Value="@patient.City" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="MedicalPolicy" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Адрес" Component="Address" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Адрес" Name="Address" @bind-Value="@patient.Address" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Address" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
 
                     <RadzenStack Orientation="Orientation.Horizontal">
-                        <RadzenButton Text="Сохранить" Click="@SaveUser" />
+                        <RadzenButton Text="Сохранить" ButtonType="ButtonType.Submit" />
                         <RadzenButton Click="@((args) => DialogService.Close(false))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
                     </RadzenStack>
                 </RadzenStack>
-            </EditForm>
+            </RadzenTemplateForm>
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>

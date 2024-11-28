@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.Constants
 @using Shared.Models
 @using WebSite.Models
 @using WebSite.Providers
@@ -109,7 +110,7 @@
                                 <RadzenLabel Text="Диагноз" Component="VisitDiagnos" />
                             </RadzenColumn>
                             <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenTextArea Style="width: 100%;" Name="VisitDiagnos"></RadzenTextArea>
+                                <RadzenTextArea Style="width: 100%;" Name="VisitDiagnos" @bind-Value="@visit.VisitDiagnos" ReadOnly=@(visit.VisitStatusId != (int)VisitStatuses.Waiting) />
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenStack>
@@ -121,7 +122,7 @@
                                 <RadzenLabel Text="Объективно" Component="VisitObjectivly" />
                             </RadzenColumn>
                             <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenTextArea Style="width: 100%;" Name="VisitObjectivly"></RadzenTextArea>
+                                <RadzenTextArea Style="width: 100%;" Name="VisitObjectivly" @bind-Value="@visit.VisitObjectively" ReadOnly=@(visit.VisitStatusId != (int)VisitStatuses.Waiting) />
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenStack>
@@ -146,9 +147,11 @@
                                 <RadzenDataGridColumn Property="@nameof(ServiceInVisit.Quantity)" Title="Количество">
                                     <EditTemplate Context="service">
                                         <RadzenNumeric @bind-Value="service.Quantity" Style="width:100%; display: block" Name="Quanitity" aria-label="Введите количество" />
-                                      
+
                                     </EditTemplate>
                                 </RadzenDataGridColumn>
+                                @if (visit.VisitStatusId == (int)VisitStatuses.Waiting)
+                                {
                                 <RadzenDataGridColumn Context="service" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                                     <Template Context="order">
                                         <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(order))" @onclick:stopPropagation="true">
@@ -165,32 +168,36 @@
                                         </RadzenButton>
                                     </EditTemplate>
                                 </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
+                                }
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenStack>
+            </RadzenFieldset>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenFieldset Text="Итого">
+                <RadzenStack Gap="1rem">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenText>Кол-во услуг: </RadzenText>
+                        <RadzenTextBox Value="@SelectedServices.Count().ToString()" ReadOnly="true" />
                     </RadzenStack>
-                </RadzenFieldset>
-            </RadzenColumn>
-            <RadzenColumn Size="12" SizeMD="4">
-                <RadzenFieldset Text="Итого">
-                    <RadzenStack Gap="1rem">
-                        <RadzenStack Orientation="Orientation.Horizontal">
-                            <RadzenText>Кол-во услуг: </RadzenText>
-                            <RadzenTextBox Value="@SelectedServices.Count().ToString()" ReadOnly="true" />
-                        </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Horizontal">
-                            <RadzenText>На сумму: </RadzenText>
-                            <RadzenTextBox Value=@TotalPrice.ToString() ReadOnly="true" />
-                        </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenText>На сумму: </RadzenText>
+                        <RadzenTextBox Value=@TotalPrice.ToString() ReadOnly="true" />
                     </RadzenStack>
-                </RadzenFieldset>
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
-            <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="save" Text="Завершить" />
-            <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Отмена" Click="@Cancel" />
-        </RadzenStack>
-    </RadzenTemplateForm>
+                </RadzenStack>
+            </RadzenFieldset>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
+        @if (visit.VisitStatusId == (int)VisitStatuses.Waiting)
+        {
+            <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="save" Text="Провести запись" />
+        }
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Отмена" Click="@Cancel" />
+    </RadzenStack>
+</RadzenTemplateForm>
 
-    @code {
+@code {
 
 }

@@ -65,14 +65,6 @@ namespace WebSite.Pages
         private bool isLoading;
         private LoadDataArgs lastArgs;
         private int count;
-        private string[] FilterNames { get; set; } = new string[]
-            {
-                "search",
-                "orderBy",
-                "rolesIds",
-                "specializationIds",
-            };
-
         protected override async Task OnInitializedAsync()
         {
             search = string.Empty;
@@ -206,14 +198,14 @@ namespace WebSite.Pages
         }
         public async Task OpenEmployeeWindow()
         {
-            await DialogService.OpenAsync<AddEmployee>($"Добавление",
+            await DialogService.OpenAsync<AddEmployee>($"Добавление сотрудника",
                new Dictionary<string, object>() { { "EmployeeId", 0 } },
                new DialogOptions()
                {
                    Resizable = true,
                    Draggable = true,
 
-                   Width = "500px",
+                   Width = "600px",
                    Height = "720px"
                });
 
@@ -221,14 +213,14 @@ namespace WebSite.Pages
 
         public async Task OpenEditEmployeeWindow(int id)
         {
-            await DialogService.OpenAsync<AddEmployee>($"Редактирование",
+            await DialogService.OpenAsync<AddEmployee>($"Редактирование сотрудника",
              new Dictionary<string, object>() { { "EmployeeId", id } },
              new DialogOptions()
              {
                  Resizable = true,
                  Draggable = true,
 
-                 Width = "500px",
+                 Width = "600px",
                  Height = "720px"
              });
         }

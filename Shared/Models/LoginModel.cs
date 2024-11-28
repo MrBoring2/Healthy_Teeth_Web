@@ -9,10 +9,12 @@ namespace Shared.Models
 {
     public class LoginModel
     {
-        [Required]
+        [MaxLength(20, ErrorMessage = "Максимальная длина 30 символов")]
+        [Required(ErrorMessage = "Поле Имя обязательно для заполнения")]
         public string Login { get; set; }
 
-        [Required]
+        [MaxLength(20, ErrorMessage = "Максимальная длина 30 символов")]
+        [Required(ErrorMessage = "Поле Имя обязательно для заполнения")]
         public string Password { get; set; }
     }
 }

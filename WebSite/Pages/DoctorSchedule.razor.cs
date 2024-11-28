@@ -33,21 +33,10 @@ namespace WebSite.Pages
             });
         }
         private SchedulerLoadDataEventArgs lastArgs;
-        RadzenScheduler<Appointment> scheduler;
-        //EventConsole console;
-        Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+        private RadzenScheduler<Appointment> scheduler;
+        private Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
 
         private IList<Appointment> appointments = new List<Appointment>();
-        //{
-        //new Appointment { Start = DateTime.Today.AddDays(-2), End = DateTime.Today.AddDays(-2), Text = "Birthday" },
-        //new Appointment { Start = DateTime.Today.AddDays(-11), End = DateTime.Today.AddDays(-10), Text = "Day off" },
-        //new Appointment { Start = DateTime.Today.AddDays(-10), End = DateTime.Today.AddDays(-8), Text = "Work from home" },
-        //new Appointment { Start = DateTime.Today.AddHours(10), End = DateTime.Today.AddHours(12), Text = "Online meeting" },
-        //new Appointment { Start = DateTime.Today.AddHours(10), End = DateTime.Today.AddHours(13), Text = "Skype call" },
-        //new Appointment { Start = DateTime.Today.AddHours(14), End = DateTime.Today.AddHours(14).AddMinutes(30), Text = "Dentist appointment" },
-        //new Appointment { Start = DateTime.Today.AddDays(1), End = DateTime.Today.AddDays(12), Text = "Vacation" },
-        //};
-
         private async Task LoadVisits(SchedulerLoadDataEventArgs args)
         {
             StateHasChanged();

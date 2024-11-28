@@ -8,28 +8,45 @@
 @inject NavigationManager NavigationManager
 @inject CustomStateProvider _authStateProvider
 @inject IServiceApiService _apiService
-<h1>Карточка услуги</h1>
 <hr />
 <CascadingAuthenticationState>
     <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")">
         <Authorized>
-            <EditForm Model="@service" Context="editContext" OnValidSubmit="SaveService">
-                <RadzenStack>
-                    <RadzenFormField Text="Название">
-                        <RadzenTextBox Placeholder="Название" @bind-Value="@service.Title" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Стоимость">
-                        <RadzenNumeric Placeholder="Стоимость" @bind-Value="@service.Price" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Специализация">
-                        <RadzenDropDown Placeholder="Выберите специализацию" Data="@Specializations" @bind-Value=@service.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
-                    </RadzenFormField>
+            <RadzenTemplateForm Data="@service" TItem="ServiceDTO" Context="editContext" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Название" Component="Title" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Название" Name="Title" @bind-Value="@service.Title" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Title" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Стоимость" Component="Price" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenNumeric Style="display: block" Placeholder="Стоимость" Name="Price" @bind-Value="@service.Price" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Price" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Специализация" Component="Specialization" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите специализацию" Name="Specialization" Data="@Specializations" @bind-Value=@service.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                            <RadzenDataAnnotationValidator Component="Specialization" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
                     <RadzenStack Orientation="Orientation.Horizontal">
-                        <RadzenButton Text="Сохранить" Click="@SaveService" />
+                        <RadzenButton Text="Сохранить" ButtonType="ButtonType.Submit" />
                         <RadzenButton Click="@((args) => DialogService.Close(false))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
                     </RadzenStack>
                 </RadzenStack>
-            </EditForm>
+            </RadzenTemplateForm>
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>

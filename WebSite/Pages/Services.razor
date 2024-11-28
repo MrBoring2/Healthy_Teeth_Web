@@ -32,7 +32,9 @@
                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="ServiceDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
                 <HeaderTemplate>
-                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить услугу" Click="@OpenServiceWindow" />
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")" Context="innerContext">
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить услугу" Click="@OpenServiceWindow" />
+                    </AuthorizeView>
                 </HeaderTemplate>
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
