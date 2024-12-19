@@ -27,12 +27,14 @@ namespace WebAPI.Controllers
         private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly IMapper _mapper;
         private readonly HealthyTeethDbContext _context;
+        private readonly ILogger<EmployeesController> _logger;
 
-        public ServicesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
+        public ServicesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<EmployeesController> logger)
         {
             _context = context;
             _mapper = mapper;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         // GET: api/Services
@@ -149,7 +151,8 @@ namespace WebAPI.Controllers
                     }
                 }
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
-                return Ok();
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} обновил услугу с id {service.Id}");
+                return Ok("Услуга успешно изменена");
             }
             else
             {
@@ -175,7 +178,7 @@ namespace WebAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
-
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} создал услугу с id {service.Id}");
                 return CreatedAtAction("GetService", new { id = service.Id }, service);
             }
             else
@@ -199,6 +202,7 @@ namespace WebAPI.Controllers
                 _context.Services.Remove(service);
                 await _context.SaveChangesAsync();
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).ServicesChanged("Успешно");
+                _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил услугу с id {service.Id}");
             }
             catch (Exception ex)
             {

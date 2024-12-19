@@ -185,6 +185,8 @@ namespace WebAPI.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} изменил пользователя с логином{employee.Login}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -197,7 +199,7 @@ namespace WebAPI.Controllers
                     throw;
                 }
             }
-            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+
             return Ok();
 
 
@@ -243,7 +245,7 @@ namespace WebAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
-
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} создал пользователя с логином{employee.Login}");
                 return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
             }
             else
@@ -256,7 +258,7 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.Include(p => p.Visits).FirstOrDefaultAsync(p => p.Id == id);
+            var employee = await _context.Employees.Include(p => p.Visits).Include(p => p.Account).FirstOrDefaultAsync(p => p.Id == id);
             if (employee == null)
             {
                 return NotFound();
@@ -269,6 +271,7 @@ namespace WebAPI.Controllers
             {
                 _context.Employees.Remove(employee);
                 await _context.SaveChangesAsync();
+                _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил пользователя с логином{employee.Account.Login}");
             }
             catch (Exception ex)
             {

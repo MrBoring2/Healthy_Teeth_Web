@@ -42,9 +42,9 @@
             <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedVisits SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="VisitDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
-                <HeaderTemplate>
+               @*  <HeaderTemplate>
                     <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить услугу" Click="@OpenVisitWindow" />
-                </HeaderTemplate>
+                </HeaderTemplate> *@
                 <EmptyTemplate>
                     <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
                 </EmptyTemplate>

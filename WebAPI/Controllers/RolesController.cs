@@ -12,6 +12,7 @@ using AutoMapper;
 using Shared.DTO;
 using Shared.Models;
 using Shared.Constants;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace WebAPI.Controllers
 {
@@ -19,13 +20,17 @@ namespace WebAPI.Controllers
     [ApiController]
     public class RolesController : ControllerBase
     {
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private readonly HealthyTeethDbContext _context;
         private readonly IMapper _mapper;
-
-        public RolesController(HealthyTeethDbContext context, IMapper mapper)
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<RolesController> _logger;
+        public RolesController(HealthyTeethDbContext context, IMapper mapper, IMemoryCache cache, ILogger<RolesController> logger)
         {
             _context = context;
             _mapper = mapper;
+            _cache = cache;
+            _logger = logger;
         }
 
         // GET: api/Roles
@@ -33,8 +38,28 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<IEnumerable<RoleDTO>> GetRoles()
         {
-            var roles =  _context.Roles.AsQueryable();
-            return _mapper.Map<IEnumerable<RoleDTO>>(roles);
+            _cache.TryGetValue("roles", out IEnumerable<RoleDTO> roles);
+            try
+            {
+                await semaphore.WaitAsync();
+                if (roles == null)
+                {
+
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                        Priority = CacheItemPriority.Normal,
+                    };
+                    roles = _mapper.Map<IEnumerable<RoleDTO>>(_context.Roles.AsQueryable());
+                    _cache.Set("roles", roles, cacheOptions);
+                    _logger.LogInformation("Роли записаны в кэш");
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+            return roles;
         }
     }
 }

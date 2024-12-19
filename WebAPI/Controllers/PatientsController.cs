@@ -133,7 +133,8 @@ namespace WebAPI.Controllers
                     }
                 }
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
-                return Ok();
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} обновил пациента с id {patient.Id}");
+                return Ok("Пациент успешно обновлён");
             }
             else
             {
@@ -164,7 +165,7 @@ namespace WebAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
-
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} добавил пациента с id {patient.Id}");
                 return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
             }
             else
@@ -191,6 +192,7 @@ namespace WebAPI.Controllers
                 _context.Patients.Remove(patient);
                 await _context.SaveChangesAsync();
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил пациента с id {patient.Id}");
             }
             catch (Exception ex)
             {

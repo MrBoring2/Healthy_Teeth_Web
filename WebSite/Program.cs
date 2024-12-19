@@ -30,6 +30,7 @@ builder.Services.AddHttpClient("api", httpClient =>
     httpClient.BaseAddress = new Uri("https://localhost:1044");
 }).AddHttpMessageHandler<SetAuthHttpHandler>();
 
+
 builder.Services.AddHttpClientInterceptor();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRadzenCookieThemeService(options =>
@@ -47,8 +48,7 @@ builder.Services.AddTransient<ISpecializationApiService, SpecializationApiServic
 builder.Services.AddTransient<IVisitApiService, VisitApiService>();
 builder.Services.AddTransient<IVisitStatusApiService, VisitStatusApiService>();
 builder.Services.AddScoped<AuthHttpService>();
-builder.Services.AddScoped(
-    sp => sp.GetService<IHttpClientFactory>().CreateClient("api"));
+builder.Services.AddScoped(sp => sp.GetService<IHttpClientFactory>().CreateClient("api"));
 builder.Services.AddScoped<CustomStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<CustomStateProvider>());
 builder.Services.AddScoped(sp =>

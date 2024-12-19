@@ -10,6 +10,10 @@ services:
     ports:
         -  "1081:80"
         -  "1044:443"
+    logging:
+        driver: "gelf"
+        options:
+            gelf-address: "udp://0.0.0.0:12201"
     restart: unless-stopped
     networks:
       healthy-teeth-network:
@@ -17,13 +21,14 @@ services:
     container_name: healthy-teeth-db
     image: postgres:16
     environment:
-      POSTGRES_DB: "healthy-teeth"
+      POSTGRES_DB: "healthy_teeth"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
     ports:
       - "5433:5432"
     volumes:
       - healthy-teeth-pgdata:/var/lib/postgresql/data
+      - healthy-teeth-backup:/var/lib/backup
     restart: unless-stopped
     networks:
       healthy-teeth-network:
@@ -64,10 +69,37 @@ services:
       - ~/.aspnet/https:/https:ro
     networks:
       healthy-teeth-network:
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    volumes:
+      - seq-logs:/data
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5341:80"
+    restart: unless-stopped
+    networks:
+      healthy-teeth-network:
+  seq_gelf:
+    container_name: seq-self
+    image: datalust/seq-input-gelf:latest
+    depends_on:
+        - seq
+    ports:
+        - "12201:12201/udp"
+    environment:
+        SEQ_ADDRESS: "http://seq:5341"
+        SEQ_API_KEY: "IbSLdiNG5D2KtZZagdo8"
+    networks:
+      healthy-teeth-network:
+    restart: unless-stopped
 
 volumes:
   healthy-teeth-pgdata:
+  healthy-teeth-backup:
   healthy-teeth-api-logs:
+  seq-logs:
   certificates:
 
 networks:

@@ -175,7 +175,7 @@ namespace WebSite.Pages
                     temp.Add(row);
                 }
                 Data = temp;
-                
+
                 IsLoading = false;
                 StateHasChanged();
             });
@@ -211,13 +211,16 @@ namespace WebSite.Pages
 
             if (d.StartTime <= d.TargetTime && d.EndTime.Value.AddMinutes(-30) >= d.TargetTime)
             {
-                if (d.Data?.GetType() == typeof(VisitDTO))
+                if ((SelectedDate == DateOnly.FromDateTime(DateTime.Now.Date) && d.TargetTime >= TimeOnly.FromTimeSpan(DateTime.Now.TimeOfDay)) || SelectedDate > DateOnly.FromDateTime(DateTime.Now.Date))
                 {
+                    if (d.Data?.GetType() == typeof(VisitDTO))
+                    {
 
-                }
-                else
-                {
-                    await OpenVisitWindow(d);
+                    }
+                    else
+                    {
+                        await OpenVisitWindow(d);
+                    }
                 }
             }
 

@@ -108,6 +108,12 @@ namespace WebSite.Services
                 return "";
             }
 
+            if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                _navigationManager.NavigateTo("/login");
+                return "";
+            }
+
 
             var result = JsonConvert.DeserializeObject<AuthResponse>(await response.Content.ReadAsStringAsync());
 
@@ -137,7 +143,8 @@ namespace WebSite.Services
                 {
                     result = new LoginResponse
                     {
-                        Success = false
+                        Success = false,
+                        StatusCode = response.StatusCode,                   
                     };
                 }
             }

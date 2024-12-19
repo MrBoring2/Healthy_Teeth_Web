@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.SignalR;
 using WebAPI.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Shared.Constants;
+using System.Security.Claims;
 
 namespace WebAPI.Controllers
 {
@@ -27,12 +28,13 @@ namespace WebAPI.Controllers
         private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly IMapper _mapper;
         private readonly HealthyTeethDbContext _context;
-
-        public VisitsController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext)
+        private readonly ILogger<VisitsController> _logger;
+        public VisitsController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<VisitsController> logger)
         {
             _context = context;
             _mapper = mapper;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
@@ -161,6 +163,7 @@ namespace WebAPI.Controllers
                 {
                     await _context.SaveChangesAsync();
                     await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+                    _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} обновил посещение №{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -217,6 +220,7 @@ namespace WebAPI.Controllers
                     return BadRequest();
                 }
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} изменил статус посещения №{data.Id} на {(await _context.VisitStatuses.FirstOrDefaultAsync(p => p.Id == data.VisitStatusId)).Title}");
                 return Ok();
             }
             else
@@ -247,7 +251,7 @@ namespace WebAPI.Controllers
                 var userId = await _context.Employees.Include(p => p.Account).FirstOrDefaultAsync(p => p.Id == visit.EmployeeId);
                 await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
                 await _hubContext.Clients.User(userId.Account.Login).VisitsChanged("Успешно");
-
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} создал новое посещение");
                 return CreatedAtAction("GetVisit", new { id = visit.Id }, visit);
             }
             return BadRequest("Данные не прошли проверку");
@@ -272,6 +276,8 @@ namespace WebAPI.Controllers
             _context.Visits.Remove(visit);
             await _context.SaveChangesAsync();
             await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).VisitsChanged("Успешно");
+
+            _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил посещение №{id}");
             return Ok();
         }
 

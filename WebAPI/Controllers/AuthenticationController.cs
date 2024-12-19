@@ -60,7 +60,8 @@ namespace WebAPI.Controllers
                     JwtBearer = token.access_token,
                     RefreshJwtBearer = refreshToken,
                     Login = token.user_name,
-                    Success = true
+                    Success = true,
+                    StatusCode = System.Net.HttpStatusCode.OK
                 });
             }
             else return BadRequest(new LoginResponse { Message = "Пользователь/пароль не найдены.", Success = false });

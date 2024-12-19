@@ -29,7 +29,7 @@ namespace WebSite.Pages
             if (!EditContext.Validate())
                 return;
             var result = await AuthStateProvider.LoginAsync(loginModel);
-            if (result.Success)
+            if (result.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var user = await AuthStateProvider.GetAuthenticationStateAsync();
                 if ((user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Администратор" || user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Регистратор"))
@@ -40,7 +40,24 @@ namespace WebSite.Pages
                 {
                     Navigation.NavigateTo("/doctor-schedule");
                 }
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Duration = 2000,
+                    Summary = "Оповщение",
+                    Detail = "Добро пожаловать"
+                });
 
+            }
+            else if(result.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Duration = 2000,
+                    Summary = "Критическая ошибка",
+                    Detail = "Не удаётся соединиться с сервером или с базой данных"
+                });
             }
             else
             {

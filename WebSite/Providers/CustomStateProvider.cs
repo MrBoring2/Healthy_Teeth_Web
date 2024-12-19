@@ -9,6 +9,7 @@ namespace WebSite.Providers
 {
     public class CustomStateProvider : AuthenticationStateProvider
     {
+
         private readonly HttpClient _httpClient;
         private readonly AuthHttpService _authHttpService;
 
@@ -17,6 +18,7 @@ namespace WebSite.Providers
             _authHttpService = authHttpService;
             _httpClient = httpClient;
         }
+
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {

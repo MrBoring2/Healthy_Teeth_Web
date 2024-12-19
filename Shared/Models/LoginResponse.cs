@@ -1,4 +1,6 @@
-﻿namespace WebAPI.Identity
+﻿using System.Net;
+
+namespace WebAPI.Identity
 {
     public class LoginResponse
     {
@@ -7,5 +9,6 @@
         public string JwtBearer { get; set; }
         public string RefreshJwtBearer { get; set; }
         public bool Success { get; set; }
+        public HttpStatusCode StatusCode { get; set; }
     }
 }

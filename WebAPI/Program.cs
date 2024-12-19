@@ -16,6 +16,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebAPI.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using WebAPI.Services;
 using WebAPI.SignalR;
 
@@ -27,7 +28,7 @@ try
         .ReadFrom.Configuration(builder.Configuration)          
         .Enrich.FromLogContext()
         .CreateLogger();
-
+    Serilog.Debugging.SelfLog.Enable(Console.Error);
     builder.Host.UseSerilog();
 
     Log.Information("Запуск сервера");
@@ -47,7 +48,8 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddSignalR();
-
+    // добавление кэширования
+    builder.Services.AddMemoryCache();
     builder.Services.AddResponseCompression(opts =>
     {
         opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -114,7 +116,7 @@ try
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 
-                   
+                                    
                 string userName = "";
                 if(httpContext.Request.Method == "OPTIONS")
                 {
