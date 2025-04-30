@@ -1,31 +1,88 @@
 ﻿@using Blazored.LocalStorage
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.SignalR.Client
 @using WebSite.Providers
-
-
-<Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="@OnNavigateAsync">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+@using WebSite.Services
+<head>
+    <RadzenTheme Theme="standart" />
+</head>
+<PageTitle>Загрузка</PageTitle>
+<RadzenTheme Theme="standart" />
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="@OnNavigateAsync">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <h1>Извините</h1>
+                    <p>Вы не авторизован для доступа к этой страницы.</p>
+                    <p>Вы должны авторищваться под другим пользователем.</p>
+                </NotAuthorized>
+                <Authorizing>
+                    <h1>Авторизация в процессе</h1>
+                </Authorizing>
+            </AuthorizeRouteView>
+            @*  <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" /> *@
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Извините, по данному адресу ничего не найдено.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
 
 @code {
+    [Inject]
+    CookieThemeService CookieThemeService { get; set; }
+    [Inject]
+    private HubConnection HubConnection { get; set; }
+    [Inject]
+    private ThemeService ThemeService { get; set; }
+
+    private CancellationTokenSource cts = new CancellationTokenSource();
     private async Task OnNavigateAsync(NavigationContext args)
     {
 
-       /* var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        var user = await _authProvider.GetAuthenticationStateAsync();
-        Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
-        if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ConnectWithRetrySync(cts.Token);
+
+        HubConnection.Closed += error =>
         {
-            await _authProvider.GetAuthenticationStateAsync();
-        }*/
+            Console.WriteLine("Не удалось соединиться с сервером");
+            return ConnectWithRetrySync(cts.Token);
+        };
+    }
+
+    private async Task<bool> ConnectWithRetrySync(CancellationToken token)
+    {
+        Console.WriteLine("Попытка подлючмться к серверу");
+        while (true)
+        {
+            if (HubConnection.State == HubConnectionState.Connected)
+                return true;
+            try
+            {
+                await HubConnection.StartAsync();
+                Console.WriteLine("Подлюкчен к серверу");
+            }
+            catch when (token.IsCancellationRequested)
+            {
+                Console.WriteLine("Полный провал");
+                return false;
+            }
+            catch
+            {
+                Console.WriteLine(HubConnection.State);
+                Console.WriteLine("Соединение подключено");
+                await Task.Delay(10000);
+            }
+        }
     }
 }

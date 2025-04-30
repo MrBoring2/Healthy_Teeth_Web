@@ -1,38 +1,115 @@
 ﻿@using Blazored.LocalStorage
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using WebSite.Providers
 @inherits LayoutComponentBase
 @inject ILocalStorageService _localStorageService
 @inject CustomStateProvider _authProvider
 
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
-
 <RadzenComponents />
-@code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenLayout>
+                <RadzenHeader>
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                                <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+                                <RadzenBreadCrumb>
+                                    <Template Context="item">
+                                        <RadzenBadge Text="@item.Text" IsPill="true" />
+                                    </Template>
+                                    <ChildContent>
+                                        <RadzenBreadCrumbItem Path="@Path" Text="@BroadcampTitle" />
+                                    </ChildContent>
+                                </RadzenBreadCrumb>
+                            </RadzenStack>
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                                <RadzenIcon Icon="account_circle" Style="font-size: 2em;" class="rz-mt-1" IconColor="@Colors.Primary" />
+                                <RadzenText Text="@UserHeader" class="rz-mt-3 rz-mr-5" />
+                            </RadzenStack>
+
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenHeader>
+                <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+                    <RadzenPanelMenu Style="width:245px">
+                        <AuthorizeView Roles="@($"{Shared.Constants.Roles.DOCTOR}")" Context="innerContext2">
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Записи" Path="doctor-schedule" Icon="date_range" />
+                        </AuthorizeView>
+                        <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="innerContext">
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Расписание врачей" Path="doctors-schedule" Icon="date_range" />
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Записи" Path="visits" Icon="description" />
+                            <RadzenPanelMenuItem Click=OnItemClicked Text="Сотрудники" Path="employees" Icon="assignment_ind" />
+                        </AuthorizeView>
+                        <RadzenPanelMenuItem Click=OnItemClicked Text="Услуги" Path="services" Icon="description" />
+                        <RadzenPanelMenuItem Click=OnItemClicked Text="Пациенты" Path="patients" Icon="patient_list" />
+                        <RadzenPanelMenuItem Text="Выход" Click="OnExitClicked" Icon="exit_to_app" />
+                        <RadzenPanelMenuItem Text="Выход со всех сессий" Click="OnExitAllClicked" Icon="exit_to_app" />
+                    </RadzenPanelMenu>
+                </RadzenSidebar>
+                <RadzenBody>
+                    <div class="content px-4">
+                        @Body
+                    </div>
+                </RadzenBody>
+                <RadzenFooter>
+                    <RadzenText>© ООО «Здоровые зубы», 2024-@DateTime.Now.Date.Year</RadzenText>
+                    </RadzenFooter>
+                </RadzenLayout>
+            </Authorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+
+    @code {
+
+    [Inject]
+    private CustomStateProvider AuthStatePrivder { get; set; }
+    [Inject]
+    public NavigationManager Nagivation { get; set; }
+    [Inject]
+    public ILocalStorageService LocalStorage { get; set; }
+    private string BroadcampTitle { get; set; }
+    private string Path { get; set; }
+    public string UserHeader { get; set; }
+    bool sidebar1Expanded = true;
+
+    protected override async Task OnInitializedAsync()
     {
-        var auth = await _localStorageService.GetItemAsync<string>("accessToken");
-        Console.WriteLine($"Токен: {auth}");
+
+        Path = "/visits";
+        BroadcampTitle = "Посещения";
         var user = await _authProvider.GetAuthenticationStateAsync();
-        Console.WriteLine($"Авторизован: {user.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name)}, Токен: {auth}");
-        if (!string.IsNullOrEmpty(auth) && !user.User.Identity.IsAuthenticated)
+        UserHeader = $"{user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.GivenName)?.Value}, {user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value}";
+        if (!user.User.Identity.IsAuthenticated)
         {
-            await _authProvider.GetAuthenticationStateAsync();
+            Nagivation.NavigateTo("/login");
         }
+        if ((user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Администратор" || user.User.Claims?.FirstOrDefault(p => p.Type == ClaimTypes.Role)?.Value == "Регистратор"))
+        {
+            Nagivation.NavigateTo("/doctors-schedule");
+        }
+    }
+
+    private async Task OnItemClicked(MenuItemEventArgs args)
+    {
+        Path = args.Path;
+        BroadcampTitle = args.Text;
+        StateHasChanged();
+    }
+    private async Task OnExitClicked()
+    {
+        var result = await AuthStatePrivder.LogoutAsync();
+        if (result.Success)
+            Nagivation.NavigateTo("/login");
+    }
+    private async Task OnExitAllClicked()
+    {
+        var result = await AuthStatePrivder.LogoutAllAsync();
+        if (result.Success)
+            Nagivation.NavigateTo("/login");
     }
 }

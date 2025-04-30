@@ -8,7 +8,9 @@ namespace Entities
 {
     public class EmployeeRefreshToken
     {
+        public int Id { get; set; } 
         public int EmployeeId { get; set; }
+        public string? UserAgent { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryDate { get; set; }
         public virtual Account Account { get; set; }

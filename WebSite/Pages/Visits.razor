@@ -1,0 +1,77 @@
+﻿@page "/visits"
+@using Entities
+@using Newtonsoft.Json
+@using Shared.Constants
+@using Shared.DTO
+@using WebSite.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using WebSite.Services.ApiServices
+
+
+<PageTitle>Здоровые зубы | Записи</PageTitle>
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
+        <Authorized>
+            <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
+                <HeaderTemplate>
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="account_box" class="rz-me-1" /><b>Отображение данных</b>
+                    </RadzenText>
+                </HeaderTemplate>
+                <ChildContent>
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
+                        <RadzenFormField Text="Поиск по пациенту">
+                            <RadzenTextBox Placeholder="Введите ФИО пациента" @bind-Value="@Patient" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Поиск по доктору">
+                            <RadzenTextBox Placeholder="Введите ФИО доктора" @bind-Value="@Doctor" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Дата от">
+                            <RadzenDatePicker Placeholder="Введите начало периода" @bind-Value="@StartDate" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Дата до">
+                            <RadzenDatePicker Placeholder="Введите конец периода" @bind-Value="@EndDate" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Статус записи">
+                            <RadzenDropDown @bind-Value=@SelectedStatuses Data=@Statuses TextProperty="@nameof(VisitStatusDTO.Title)" Name="DropDownMultipleChips"
+                                            Multiple=true AllowClear=true Placeholder="Выберите статус" Chips=true Style="width: 100%; max-width: 400px;" SelectedItemsText="элементов выбрано" />
+                        </RadzenFormField>
+                    </RadzenStack>
+                </ChildContent>
+            </RadzenPanel>
+            <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedVisits SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="VisitDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
+               @*  <HeaderTemplate>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить услугу" Click="@OpenVisitWindow" />
+                </HeaderTemplate> *@
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Property="VisitDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn Property="VisitDTO.Patient.FullName" Title="Пациент" Width="150px" />
+                    <RadzenDataGridColumn Property="VisitDTO.Employee.FullName" Title="Доктор" Width="150px" />
+                    <RadzenDataGridColumn Property="VisitDTO.VisitStatus.Title" Title="Статус" Width="50px" />
+                    <RadzenDataGridColumn Property="VisitDTO.VisitDate" Title="Дата" Width="50px" SortOrder="SortOrder.Descending" />
+                    <RadzenDataGridColumn Property="VisitDTO.VisirtTime" Title="Время" Width="50px" />
+                    <AuthorizeView Context="newCon">
+                        <RadzenDataGridColumn Context="visit" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="visit">
+                                @*  <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" @onclick:stopPropagation="true">
+                                </RadzenButton> *@
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => ChangeVisitStatus(visit.Id, VisitStatuses.Waiting))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions(){ Text="Подтвердить запись", Position = TooltipPosition.Bottom }))"/>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="block" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => ChangeVisitStatus(visit.Id, VisitStatuses.Canceled))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions(){ Text="Отменить запись", Position = TooltipPosition.Bottom }))" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="person_remove" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => ChangeVisitStatus(visit.Id, VisitStatuses.NotCome))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions(){ Text="Поменить запись как 'Не пришёл'", Position = TooltipPosition.Bottom }))" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => DeleteVisit(visit.Id))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions(){ Text="Удалить запись", Position = TooltipPosition.Bottom }))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </AuthorizeView>
+                </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
+            </RadzenDataGrid>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

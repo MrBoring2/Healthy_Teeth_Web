@@ -2,98 +2,39 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Shared.Models
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @using WebSite.Providers
 @layout LoginLayout
-@inject NavigationManager _navigation
-@inject CustomStateProvider _authStateProvider
-@inject IJSRuntime JsRuntime
-
 
 <RadzenLayout class="d-flex align-center justify-content-center" Style="height:100vh;">
     <RadzenTemplateForm Data="@loginModel" Submit="@((LoginModel model) => { Authenticate(); })" class="d-flex justify-content-center align-items-center rz-mb-8">
         <RadzenStack AlignItems="AlignItems.Center">
-            <RadzenCard Style="width: 100%; max-width: 1000px;">
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">Авторизация</RadzenText>
-                <RadzenFormField Text="Логин" Style="width: 100%;">
-                    <RadzenTextBox @bind-Value="@loginModel.Login" />
-                </RadzenFormField>
-                <RadzenFormField Text="Пароль" Style="width: 100%;">
-                    <RadzenTextBox @bind-Value="@loginModel.Password" />
-                </RadzenFormField>
-                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
-                    <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Text="Войти" />
+            <RadzenCard Style="width: 100%; width: 500px;">
+                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">Авторизация</RadzenText>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Логин" Component="Login" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Логин" @bind-Value="@loginModel.Login" Name="Login" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Login" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Пароль" Component="Password" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenPassword Style="display: block" Placeholder="Пароль" @bind-Value="@loginModel.Password" Name="Password" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Password" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
+                        <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Text="Войти" />
+                    </RadzenStack>
                 </RadzenStack>
             </RadzenCard>
         </RadzenStack>
     </RadzenTemplateForm>
 </RadzenLayout>
-
-
-
-
-
-@*
-<div id="login">
-    <div class="container">
-        <!-- Title -->
-        <div class="row">
-            <div class="col-sm">
-                <h1>Login</h1>
-            </div>
-        </div>
-        <div class="row">
-            <EditForm EditContext="@EditContext" OnSubmit="@Authenticate">
-                <DataAnnotationsValidator />
-
-                <!-- User -->
-                <div class="form-group">
-                    <label for="userName">User</label>
-                    <InputText id="userName" class="form-control" @bind-Value="@UserName" />
-                    <ValidationMessage For="@(() => UserName)" />
-                </div>
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <InputText type="password" id="password" class="form-control" @bind-Value="@Password" />
-                    <ValidationMessage For="@(() => Password)" />
-                </div>
-                <!-- Action -->
-                <button type="submit" class="btn btn-primary">Login</button>
-            </EditForm>
-        </div>
-        <!-- Error -->
-        <div class="row mt-1">
-            <label>@ErrorMessage</label>
-        </div>
-    </div>
-</div> *@
-
-@code {
-    private string ErrorMessage { get; set; }
-    private EditContext EditContext { get; set; }
-    /// <summary>
-    /// User name
-    /// </summary>
-    LoginModel loginModel = new LoginModel();
-    string message = string.Empty;
-    bool isDisabled = false;
-    public Login()
-    {
-        EditContext = new EditContext(this);
-    }
-    private async void Authenticate()
-    {
-        if (!EditContext.Validate())
-            return;
-        var result = await _authStateProvider.LoginAsync(loginModel);
-        if (result.Success)
-        {
-            Console.WriteLine(result.Login + " " + result.Message + " " + result.Success + " " + result.JwtBearer);
-            _navigation.NavigateTo("/");
-        }
-        else
-        {
-            StateHasChanged();
-        }
-    }
-}

@@ -2,15 +2,17 @@
 
 namespace WebSite.Models
 {
-    public class ResponseModel
+    public class ResponseModel<T>
     {
-        public ResponseModel(HttpStatusCode statusCode, string cotnent)
+        public ResponseModel(HttpStatusCode statusCode, T cotnent, string message = "")
         {
             StatusCode = statusCode;
             Content = cotnent;
+            this.Message = message;
         }
 
         public HttpStatusCode StatusCode { get; }
-        public string Content { get; }
+        public T Content { get; }
+        public string Message { get; }
     }
 }

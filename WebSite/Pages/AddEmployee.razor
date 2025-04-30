@@ -1,90 +1,153 @@
-﻿@using Entities
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}")]
+@using Entities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
 @using Shared.Models
+@using WebSite.Models
 @using WebSite.Providers
 @using WebSite.Services
-@page "/"
+@* @page "/" *@
 @inject NavigationManager NavigationManager
-@inject CustomStateProvider _authStateProvider
-@inject ApiService _apiService
-<h1>@Title User</h1>
 <hr />
-<EditForm Model="@employee" OnValidSubmit="SaveUser">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label for="FirstName" class="form-label">Имя</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.FirstName" />
-        </div>
-        <ValidationMessage For="@(() => employee.FirstName)" />
-    </div>
-    <div class="mb-3">
-        <label for="MiddleName" class="form-label">Фамилия</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.MiddleName" />
-        </div>
-        <ValidationMessage For="@(() => employee.MiddleName)" />
-    </div>
-    <div class="mb-3">
-        <label for="LastName" class="form-label">Отчество</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.LastName" />
-        </div>
-        <ValidationMessage For="@(() => employee.LastName)" />
-    </div>
-    <div class="mb-3">
-        <label for="Gender" class="form-label">Пол</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Gender" />
-        </div>
-        <ValidationMessage For="@(() => employee.Gender)" />
-    </div>
-    <div class="mb-3">
-        <label for="Cellnumber" class="form-label">DateOfBirth</label>
-        <div class="col-md-4">
-            <InputDate class="form-control" @bind-Value="employee.DateOfBirth" />
-        </div>
-        <ValidationMessage For="@(() => employee.DateOfBirth)" />
-    </div>
-    <div class="mb-3">
-        <label for="Phone" class="form-label">Пол</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Phone" />
-        </div>
-        <ValidationMessage For="@(() => employee.Phone)" />
-    </div>
-    <div class="mb-3">
-        <label for="SpecializationId" class="form-label">Специализация</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="employee.SpecializationId" />
-        </div>
-        <ValidationMessage For="@(() => employee.SpecializationId)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.Login" class="form-label">Логин</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Account.Login" />
-        </div>
-        <ValidationMessage For="@(() => employee.Account.Login)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.Passsword" class="form-label">Пароль</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="employee.Account.Password" />
-        </div>
-        <ValidationMessage For="@(() => employee.Account.Password)" />
-    </div>
-    <div class="mb-3">
-        <label for="Account.RoleId" class="form-label">Роль</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="employee.Account.RoleId" />
-        </div>
-        <ValidationMessage For="@(() => employee.Account.RoleId)" />
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
-    </div>
-</EditForm>
-@code{
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")">
+        <Authorized>
+            <RadzenTemplateForm Data="@employee" TItem="EmployeeViewModel" Context="editContext" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Фамилия" Component="FirstName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Фамилия" @bind-Value="@employee.FirstName" Name="FirstName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="FirstName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Имя" Component="MiddleName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Имя" @bind-Value="@employee.MiddleName" Name="MiddleName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="MiddleName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Отчество" Component="LastName" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Отчество" @bind-Value="@employee.LastName" Name="LastName" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="LastName" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Пол" Component="Gender" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите пол" Data="@Genders" Name="Gender" @bind-Value=@employee.Gender TextProperty="@nameof(Gender.Title)" ValueProperty="@nameof(Gender.Id)" />
+                            <RadzenDataAnnotationValidator Component="Gender" Popup=true Style="position: relative"/>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Дата рождения" Component="DateOfBirth" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDatePicker Style="display: block" Placeholder="Дата рождения" Name="DateOfBirth" DateFormat="dd.MM.yyyy" @bind-Value="@employee.DateOfBirth" />
+                            <RadzenDataAnnotationValidator Component="DateOfBirth" Popup=true Style="position: relative" />
+                            <RadzenRequiredValidator Component="DateOfBirth" Popup=true Text="Дата рождения обязательна" Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Телефон" Component="Phone" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenMask Style="display: block" Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@employee.Phone" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Phone" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Роль" Component="Role" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите роль" Data="@Roles" Name="Role" @bind-Value=@employee.RoleId TextProperty="@nameof(RoleDTO.Title)"  class="rz-w-100" ValueProperty="@nameof(RoleDTO.Id)" />
+                            <RadzenDataAnnotationValidator Component="Role" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Специализация" Component="Specialization" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите специализацию" Data="@Specializations" Name="Specialization" @bind-Value=@employee.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                            <RadzenDataAnnotationValidator Component="Specialization" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Логин" Component="Login" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Логин" @bind-Value="@employee.Login" Name="Login" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Login" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    @if (employee.Id != 0)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenCheckBox @bind-Value=@employee.ChangePassword Name="ChangePassword" />
+                            <RadzenLabel Text="Изменить пароль" Component="ChangePassword" class="rz-ms-2" />
+                        </RadzenStack>
+                    }
+                    @if (employee.Id == 0 || (employee.Id != 0 && employee.ChangePassword))
+                    {
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Пароль" Component="Password" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="9">
+                                <RadzenPassword Placeholder="Пароль" Name="Password" @bind-Value="@employee.Password"  class="rz-w-100" />
+                                <RadzenDataAnnotationValidator Component="Password" Popup=true Style="position: relative"  />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    }
+
+                    <RadzenDataGrid Data="@schedules" @ref="grid" KeyProperty="WeekdayName" SelectionMode="DataGridSelectionMode.Single" TItem="ScheduleDTO">
+                        <HeaderTemplate>
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить расписание" Click="@AddSchedule" />
+                        </HeaderTemplate>
+                        <EmptyTemplate>
+                            <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Нет расписания.</p>
+                        </EmptyTemplate>
+                        <Columns>
+                            <RadzenDataGridColumn Property="ScheduleDTO.WeekdayName" Filterable="false" Title="День недели" Width="100px" TextAlign="TextAlign.Center" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.TimeFrom" Title="Начало смены" Width="80px" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.TimeTo" Title="Конец смены" Width="80px" />
+                            <RadzenDataGridColumn Property="ScheduleDTO.Cabinet" Title="Кабинет" Width="50px" />
+                            <RadzenDataGridColumn Context="schedule" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                <Template Context="schedule">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="(() => RemoveSchedule(schedule.Weekday))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+@code {
 
 }

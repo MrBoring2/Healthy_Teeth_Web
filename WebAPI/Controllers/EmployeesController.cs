@@ -10,6 +10,18 @@ using Data;
 using Shared.Models;
 using WebApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Shared.DTO;
+using AutoMapper;
+using WebAPI.SignalR;
+using System.Reflection;
+using System.Collections;
+using WebAPI.Filters;
+using WebAPI.Helpers;
+using Serilog;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -18,52 +30,163 @@ namespace WebAPI.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly HealthyTeethDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<EmployeesController> _logger;
 
-        public EmployeesController(HealthyTeethDbContext context)
+        public EmployeesController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<EmployeesController> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
         // GET: api/Employees
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public async Task<ActionResult<DataServiceResult<EmployeeDTO>>> GetEmployees(string? search, string? orderBy, string? rolesIds, string? spesializationIds, string top, string skip)
         {
-            return await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).ToListAsync();
+            //Console.WriteLine(search + " " + orderBy + " " + rolesIds + " " + spesializationIds + " " + top + " " + skip);
+            //_logger.LogInformation("Переход к сотрудникам");
+            var orderBySplit = orderBy?.Split(' ');
+            var roleIds = rolesIds?.Split(',').Select(int.Parse);
+            var spesIds = spesializationIds?.Split(',').Select(int.Parse);
+
+            EmployeeFilter filter;
+            try
+            {
+                filter = new EmployeeFilter(search, roleIds, spesIds, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+            if (orderBySplit == null)
+            {
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Employee> employees;
+
+            if (filter.OrderDirection == "asc")
+            {
+                employees = _context.Employees
+                                  .Include(p => p.Specialization)
+                                  .Include(p => p.Account)
+                                  .ThenInclude(p => p.Role)
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
+            }
+            else
+            {
+                employees = _context.Employees
+                                 .Include(p => p.Specialization)
+                                 .Include(p => p.Account)
+                                 .ThenInclude(p => p.Role)
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
+            }
+
+            var count = employees.Count();
+
+            employees = employees.Skip(filter.Skip).Take(filter.Top);
+
+            return new DataServiceResult<EmployeeDTO>(_mapper.Map<IEnumerable<EmployeeDTO>>(employees), count);
         }
 
         // GET: api/Employees/5
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        public async Task<ActionResult<EmployeeDTO>> GetEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees.Include(p => p.Account).Include(p => p.Schedules).FirstOrDefaultAsync(p => p.Id == id);
 
             if (employee == null)
             {
                 return NotFound();
             }
 
-            return employee;
+            return Ok(_mapper.Map<EmployeeDTO>(employee));
+        }
+
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
+        [HttpGet("/api/Employees/ForSchedule")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetEmployeesForSchedule(string date, int specializationId)
+        {
+            var dateOnly = DateOnly.ParseExact(date, "dd.MM.yyyy");
+            var employees = _context.Employees
+                                     .Where(p => p.SpecializationId == specializationId)
+                                     .Include(p => p.Schedules).AsNoTracking()
+                                     .Include(p => p.Visits
+                                        .Where(p => p.VisitDate == dateOnly))
+                                        .ThenInclude(p => p.Patient).AsNoTracking()
+                                     .Include(p => p.Visits
+                                        .Where(p => p.VisitDate == dateOnly))
+                                        .ThenInclude(p => p.VisitStatus).AsNoTracking()
+                                     .AsQueryable();
+
+            return Ok(employees);
         }
 
         // PUT: api/Employees/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
+        public async Task<IActionResult> PutEmployee(int id, EmployeeViewModel employee)
         {
+            if (!ModelState.IsValid)
+            {
+                if (employee.ChangePassword == false)
+                {
+                    return BadRequest("Данные не прошли проверку");
+                }
+            }
+
+            if (employee.ChangePassword == true && string.IsNullOrEmpty(employee.Password))
+            {
+                return BadRequest("Поле пароль не заполнено");
+            }
+
             if (id != employee.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(employee).State = EntityState.Modified;
+            var employeeDb = await _context.Employees.Include(p => p.Account).Include(p => p.Schedules).FirstOrDefaultAsync(p => p.Id == id);
+
+            if (employeeDb.Id != employee.Id && employeeDb.Account.Login == employee.Login)
+            {
+                return BadRequest("Пользователь с таким логином уже существует");
+            }
+
+            employeeDb.FirstName = employee.FirstName;
+            employeeDb.LastName = employee.LastName;
+            employeeDb.MiddleName = employee.MiddleName;
+            employeeDb.DateOfBirth = employee.DateOfBirth;
+            employeeDb.Gender = employee.Gender;
+            employeeDb.Phone = employee.Phone;
+            employeeDb.SpecializationId = employee.SpecializationId;
+            employeeDb.Account.Login = employee.Login;
+            employeeDb.Account.RoleId = employee.RoleId;
+            employeeDb.Schedules = _mapper.Map<IEnumerable<Schedule>>(employee.Schedules).ToList();
+            if (employee.ChangePassword)
+            {
+                byte[] passwordHash, passwordSalt;
+                PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
+                employeeDb.Account.PasswordHash = passwordHash;
+                employeeDb.Account.PasswordSalt = passwordSalt;
+            }
 
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} изменил пользователя с логином{employee.Login}");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -77,54 +200,85 @@ namespace WebAPI.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
+
+
         }
+
 
         // POST: api/Employees
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(EmployeeDTO employee)
+        public async Task<ActionResult<Employee>> PostEmployee(EmployeeViewModel employee)
         {
-            byte[] passwordHash, passwordSalt;
-            PasswordHasher.CreatePasswordHash(employee.Account.Password, out passwordHash, out passwordSalt);
-            var dbEmployee = new Employee()
+            if (ModelState.IsValid)
             {
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                MiddleName = employee.MiddleName,
-                DateOfBirth = employee.DateOfBirth,
-                Gender = employee.Gender,
-                Phone = employee.Phone,
-                SpecializationId = employee.SpecializationId,
-                Account = new Account
+                if (string.IsNullOrEmpty(employee.Password))
                 {
-                    Login = employee.Account.Login,
-                    PasswordHash = passwordHash,
-                    PasswordSalt = passwordSalt,
-                    RoleId = employee.Account.RoleId
+                    return BadRequest("Поле пароль не заполнено");
                 }
-            };
-            _context.Employees.Add(dbEmployee);
-            await _context.SaveChangesAsync();
+                if (_context.Employees.Include(p => p.Account).FirstOrDefault(p => p.Account.Login == employee.Login) != null)
+                {
+                    return BadRequest("Пользователь с таким логином уже существует");
+                }
+                byte[] passwordHash, passwordSalt;
+                PasswordHasher.CreatePasswordHash(employee.Password, out passwordHash, out passwordSalt);
+                var dbEmployee = new Employee()
+                {
+                    FirstName = employee.FirstName,
+                    LastName = employee.LastName,
+                    MiddleName = employee.MiddleName,
+                    DateOfBirth = employee.DateOfBirth,
+                    Gender = employee.Gender,
+                    Phone = employee.Phone,
+                    SpecializationId = employee.SpecializationId,
+                    Account = new Account
+                    {
+                        Login = employee.Login,
+                        PasswordHash = passwordHash,
+                        PasswordSalt = passwordSalt,
+                        RoleId = employee.RoleId
+                    }
+                };
+                _context.Employees.Add(dbEmployee);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} создал пользователя с логином{employee.Login}");
+                return CreatedAtAction("GetEmployee", new { id = dbEmployee.Id }, dbEmployee);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
-        // DELETE: api/Employees/5
+        [Authorize(Roles = $"{Roles.ADMIN}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees.Include(p => p.Visits).Include(p => p.Account).FirstOrDefaultAsync(p => p.Id == id);
             if (employee == null)
             {
                 return NotFound();
             }
 
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+            if (employee.Visits.Count > 0)
+                return BadRequest("Сотрудник имеет записи в посещениях");
 
-            return NoContent();
+            try
+            {
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+                _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил пользователя с логином{employee.Account.Login}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Не удалось удалить пользователя: " + ex.Message);
+            }
+            await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR).EmployeesChanged("Успешно");
+            return Ok();
         }
 
         private bool EmployeeExists(int id)

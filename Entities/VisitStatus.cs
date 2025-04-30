@@ -10,8 +10,9 @@ namespace Entities
     public class VisitStatus
     {
         public int Id { get; set; }
+        [Required]
         [MaxLength(50)]
-        public required string Title { get; set; }
+        public string Title { get; set; }
         public virtual List<Visit>? Visits { get; set; }
     }
 }

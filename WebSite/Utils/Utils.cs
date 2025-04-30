@@ -10,7 +10,6 @@ namespace WebSite.Utils
         {
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(accessToken);
-            Console.WriteLine(jwt.Claims.First(p => p.Type == ClaimTypes.Name));
             return jwt.Claims;
             //var claims = new List<Claim>();
             //var payload = accessToken.Split('.')[1];

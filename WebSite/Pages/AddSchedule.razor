@@ -1,0 +1,59 @@
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}")]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
+@using WebSite.Models
+<hr />
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")">
+        <Authorized>
+            <RadzenTemplateForm Data="@schedule" TItem="ScheduleDTO" Context="editContext" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+                <RadzenStack>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Фамилия" Component="Weekday" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите день недели" Name="Weekday" Data="@Weekdays" @bind-Value=@schedule.Weekday TextProperty="@nameof(Weekday.WeekdayTitle)" ValueProperty="@nameof(Weekday.WeekdayNumber)" />
+                            <RadzenDataAnnotationValidator Component="Weekday" Popup=true Style="position: relative" />
+                            <RadzenRequiredValidator Component="Weekday" Popup=true Text="День недели обязателен" Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Начало смены" Component="StartTime" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDatePicker Style="display: block" @bind-Value=@TimeFrom ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="StartTime" />
+                            <RadzenDataAnnotationValidator Component="StartTime" Popup=true Style="position: relative" />
+                            <RadzenRequiredValidator Component="StartTime" Popup=true Text="Посе Начало смены обязательн" Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Конец смены" Component="EndTime" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDatePicker Style="display: block" @bind-Value=@TimeTo ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="EndTime" />
+                            <RadzenDataAnnotationValidator Component="EndTime" Popup=true Style="position: relative" />
+                            <RadzenRequiredValidator Component="EndTime" Popup=true Text="Посе Конец смены обязательн" Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Кабинет" Component="Cabintet" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenNumeric Style="display: block" @bind-Value=@schedule.Cabinet Name="Cabinet" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Cabinet" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Click="@((args) => DialogService.Close())" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

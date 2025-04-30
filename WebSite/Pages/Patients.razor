@@ -1,0 +1,70 @@
+﻿@attribute [Authorize(Roles = $"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")]
+@page "/"
+@page "/patients"
+@using Entities
+@using Microsoft.AspNetCore.Authorization
+@using Newtonsoft.Json
+@using Shared.DTO
+@using WebSite.Services
+@using Microsoft.AspNetCore.Components.Authorization
+<PageTitle>Здоровые зубы | Пациенты</PageTitle>
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}, {Shared.Constants.Roles.DOCTOR}")">
+        <Authorized>
+            <RadzenPanel AllowCollapse="true" class="rz-mt-10 rz-mb-5 rz-mx-auto rz-border rz-border-radius-6" CollapseTitle="Свернуть" ExpandTitle="Развернуть">
+                <HeaderTemplate>
+                    <RadzenText TextStyle="TextStyle.H6" class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="account_box" class="rz-me-1" /><b>Отображение данных</b>
+                    </RadzenText>
+                </HeaderTemplate>
+                <ChildContent>
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-my-3">
+                        <RadzenFormField Text="Поиск по ФИО">
+                            <RadzenTextBox Placeholder="Введите ФИО пациента" @bind-Value="@FullName" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Поиск по телефону">
+                            <RadzenMask Mask="+* (***) ***-**-**" CharacterPattern="[0-9]" Placeholder="+0 (000) 000-00-00" Name="Phone" @bind-Value="@PhoneNumber" />
+                        </RadzenFormField>
+                        <RadzenFormField Text="Поиск по паспорту">
+                            <RadzenMask Mask="**** ******" CharacterPattern="[0-9]" Placeholder="0000 000000" Name="Phone" @bind-Value="@Passport" />
+                        </RadzenFormField>
+                    </RadzenStack>
+                </ChildContent>
+            </RadzenPanel>
+            <RadzenDataGrid @ref="grid" Data="@list" @bind-Value=@SelectedPatients SelectionMode="DataGridSelectionMode.Single" Count="@count" KeyProperty="Id" ShowPagingSummary="true" IsLoading="@isLoading"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LoadData=@LoadData
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" AllowPaging="true" TItem="PatientDTO" PageSize="10" PageSizeText="элементов" PagingSummaryFormat="Страница {0} из {1} ({2} эл.)">
+                <HeaderTemplate>
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="innerContext">
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Добавить пациента" Click="@OpenPatientWindow" />
+                    </AuthorizeView>
+                </HeaderTemplate>
+                <EmptyTemplate>
+                    <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">Данные не найдены.</p>
+                </EmptyTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Property="PatientDTO.Id" Filterable="false" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn Property="PatientDTO.FullName" Title="ФИО" Width="250px" />
+                    <RadzenDataGridColumn Property="PatientDTO.Phone" Title="Номер телефона" Width="150px" />
+                    <RadzenDataGridColumn Property="PatientDTO.Passport" Title="Паспорт" Width="100px" />
+                    <RadzenDataGridColumn Property="PatientDTO.GenderName" Title="Пол" Width="100px" />
+                    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}, {Shared.Constants.Roles.REGISTRATOR}")" Context="newCon">
+                        <RadzenDataGridColumn Context="patient" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="patient">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="(() => OpenEditPatientWindow(patient.Id))" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Dark" Click="(() => DeletePatient(patient.Id))" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true">
+                                </RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </AuthorizeView>
+                </Columns>
+                <LoadingTemplate>
+                    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </LoadingTemplate>
+            </RadzenDataGrid>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+

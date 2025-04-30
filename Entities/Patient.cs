@@ -10,32 +10,32 @@ namespace Entities
     public class Patient
     {
         public int Id { get; set; }
+        [Required]
         [MaxLength(30)]
-        public required string FirstName { get; set; }
+        public string FirstName { get; set; }
+        [Required]
         [MaxLength(30)]
-        public required string LastName { get; set; }
+        public string LastName { get; set; }
+        [Required]
         [MaxLength(30)]
-        public required string MiddleName { get; set; }
-        [MaxLength(1)]
-        public required string Gender { get; set; }
-        public required DateTime DateOfBirth { get; set; }
-        [MaxLength(40)]
-        public required string City { get; set; }
-        [MaxLength(50)]
-        public required string District { get; set; }
-        [MaxLength(50)]
-        public required string Street { get; set; }
-        [MaxLength(10)]
-        public required string Home { get; set; }
-        public required int ApartmentNuber { get; set; }
-        [MaxLength(11)]
-        public required string Phone { get; set; }
-        [MaxLength(4)]
-        public required string PassportNumber { get; set; }
+        public string MiddleName { get; set; }
+        public string? FullName { get; private set; }
+        public int? Gender { get; set; }
+        public DateOnly? DateOfBirth { get; set; }
+        [MaxLength(40)]                 
+        public string? City { get; set; }
+        [MaxLength(100)]
+        public string? Address { get; set; }
+        [Required]
+        [MaxLength(18)]
+        public string Phone { get; set; }
         [MaxLength(6)]
-        public required string PassportCode { get; set; }
+        public string? PassportNumber { get; set; }
+        [MaxLength(4)]
+        public string? PassportCode { get; set; }
+        public string? Passport { get; private set; }
         [MaxLength(16)]
-        public required string MedicalPolicy { get; set; }
+        public string? MedicalPolicy { get; set; }
         public virtual List<Visit>? Visits { get; set; }
     }
 }

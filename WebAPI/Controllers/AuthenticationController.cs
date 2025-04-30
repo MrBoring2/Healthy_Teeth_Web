@@ -21,10 +21,12 @@ namespace WebAPI.Controllers
     {
         private readonly TokenService _tokenService;
         private readonly HealthyTeethDbContext _context;
-        public AuthenticationController(HealthyTeethDbContext context, TokenService tokenService)
+        private readonly ILogger _logger;
+        public AuthenticationController(HealthyTeethDbContext context, TokenService tokenService, ILogger<AuthenticationController> logger)
         {
             _context = context;
             _tokenService = tokenService;
+            _logger = logger;
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginModel model)
@@ -33,9 +35,9 @@ namespace WebAPI.Controllers
             {
                 ClaimsIdentity userClaims = null;
                 var user = await _context.Employees.Include(p => p.Account).ThenInclude(p => p.Role).FirstOrDefaultAsync(x => x.Account.Login == model.Login);
-                Console.WriteLine($"Ялвяется ли null: {user.Id} {user.FirstName} {user.Account.Login} {user.Account.Role.Title}");
                 if (user == null || !PasswordHasher.VerifyPasswordHash(model.Password, user.Account.PasswordHash, user.Account.PasswordSalt))
                 {
+                    _logger.LogInformation("Провальаня попытка входа под логином {0}", model.Login);
                     return BadRequest("Неверное имя пользователя или пароль");
                 }
                 else
@@ -47,7 +49,9 @@ namespace WebAPI.Controllers
                 var token = JwtTokenGenerator.GenerateToken(userClaims);
                 var refreshToken = GenerateRefreshToken();
 
-                await _tokenService.SaveRefreshToken(user.Id, refreshToken);
+
+                Console.WriteLine("UserAgent: " + HttpContext.Request.Headers.UserAgent.ToString());
+                await _tokenService.SaveRefreshToken(user.Id, HttpContext.Request.Headers.UserAgent.ToString(), refreshToken);
 
                 //HttpContext.Response.Cookies.Append(".AspNetCore.Application.Id", token.access_token);
                 return Ok(new LoginResponse
@@ -56,7 +60,8 @@ namespace WebAPI.Controllers
                     JwtBearer = token.access_token,
                     RefreshJwtBearer = refreshToken,
                     Login = token.user_name,
-                    Success = true
+                    Success = true,
+                    StatusCode = System.Net.HttpStatusCode.OK
                 });
             }
             else return BadRequest(new LoginResponse { Message = "Пользователь/пароль не найдены.", Success = false });
@@ -72,11 +77,10 @@ namespace WebAPI.Controllers
 
             try
             {
-                Console.WriteLine("Тоен обновления: " + request.RefreshToken);
-                var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken);
-                Console.WriteLine("Пользователь: " + login);
+                var login = await _tokenService.RetrieveLoginByRefreshToken(request.RefreshToken, Request.Headers.UserAgent.ToString());
                 if (string.IsNullOrEmpty(login))
                 {
+                    _logger.LogWarning("Истёк токен обновления пользователя {0}", login);
                     return Unauthorized("Недействительный токен обновления");
                 }
 
@@ -85,16 +89,20 @@ namespace WebAPI.Controllers
                 var userClaims = ClaimsExtentions.BuildClaimsForUser(user);
                 if (user == null)
                 {
+                    _logger.LogWarning("Недействительный пользователь {0}", login);
                     return Unauthorized("Недействительный пользователь");
                 }
 
                 var token = JwtTokenGenerator.GenerateToken(userClaims).access_token;
                 var newRefreshToken = GenerateRefreshToken();
-                await _tokenService.SaveRefreshToken(user.Id, newRefreshToken);
+                await _tokenService.SaveRefreshToken(user.Id, Request.Headers.UserAgent.ToString(), newRefreshToken);
+                _logger.LogInformation("Обновление токена пользователя {0}", login);
+
                 return Ok(new AuthResponse { Token = token, RefreshToken = newRefreshToken });
             }
             catch (Exception ex)
             {
+                _logger.LogInformation("Ошибка сервера {0}", ex.Message);
                 return StatusCode(500, $"Ошибка сервера: {ex.Message}");
             }
         }
@@ -124,18 +132,44 @@ namespace WebAPI.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout(LogoutRequest logout)
         {
+            var userAgent = Request.Headers.UserAgent.ToString(); ;
             Console.WriteLine($"Выход: {logout.Login}");
             var errorMessage = "";
-            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshToken).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
-            acc.EmployeeRefreshToken.RefreshToken = null;
-            acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
+            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshTokens).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
+
+            acc.EmployeeRefreshTokens.Remove(acc.EmployeeRefreshTokens.FirstOrDefault(p => p.UserAgent.Equals(userAgent)));
+            // acc.EmployeeRefreshToken.RefreshToken = null;
+            // acc.EmployeeRefreshToken.RefreshTokenExpiryDate = null;
             await _context.SaveChangesAsync();
             //await _signInManager.SignOutAsync();
 
+
+            var result = new LogoutResponse()
+            {
+                Success = true,
+                ErrorMessage = errorMessage
+            };
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpPost("LogoutAll")]
+        public async Task<IActionResult> LogoutAll(LogoutRequest logout)
+        {
+            var userAgent = Request.Headers.UserAgent.ToString(); ;
+            Console.WriteLine($"Выход: {logout.Login}");
+            var errorMessage = "";
+            var acc = await _context.Accounts.Include(p => p.EmployeeRefreshTokens).FirstOrDefaultAsync(p => p.Login.Equals(logout.Login));
+
+            acc.EmployeeRefreshTokens = null;
+            await _context.SaveChangesAsync();
 
             var result = new LogoutResponse()
             {

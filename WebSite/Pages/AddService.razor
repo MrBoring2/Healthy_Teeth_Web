@@ -1,42 +1,52 @@
 ﻿@using Entities
+@using Microsoft.AspNetCore.Components.Authorization
+@using Shared.DTO
 @using Shared.Models
 @using WebSite.Providers
-@using WebSite.Services
-@page "/add-service"
+@using WebSite.Services;
+@using WebSite.Services.ApiServices
 @inject NavigationManager NavigationManager
 @inject CustomStateProvider _authStateProvider
-@inject ApiService _apiService
-<h1>@Title User</h1>
+@inject IServiceApiService _apiService
 <hr />
-<EditForm Model="@service" OnValidSubmit="SaveUser">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label for="Title" class="form-label">Название</label>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="service.Title" />
-        </div>
-        <ValidationMessage For="@(() => service.Title)" />
-    </div>
-    <div class="mb-3">
-        <label for="Price" class="form-label">Цена</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="service.Price" />
-        </div>
-        <ValidationMessage For="@(() => service.Price)" />
-    </div>
-    <div class="mb-3">
-        <label for="SpecializatonId" class="form-label">Специализация</label>
-        <div class="col-md-4">
-            <InputNumber class="form-control" @bind-Value="service.SpecializationId" />
-        </div>
-        <ValidationMessage For="@(() => service.SpecializationId)" />
-    </div>
-    
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button class="btn btn-light" @onclick="Cancel">Отмена</button>
-    </div>
-</EditForm>
-@code {
-
-}
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="@($"{Shared.Constants.Roles.ADMIN}")">
+        <Authorized>
+            <RadzenTemplateForm Data="@service" TItem="ServiceDTO" Context="editContext" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Название" Component="Title" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenTextBox Style="display: block" Placeholder="Название" Name="Title" @bind-Value="@service.Title" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Title" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Стоимость" Component="Price" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenNumeric Style="display: block" Placeholder="Стоимость" Name="Price" @bind-Value="@service.Price" class="rz-w-100" />
+                            <RadzenDataAnnotationValidator Component="Price" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenLabel Text="Специализация" Component="Specialization" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenDropDown Style="display: block" Placeholder="Выберите специализацию" Name="Specialization" Data="@Specializations" @bind-Value=@service.SpecializationId TextProperty="@nameof(SpecializationDTO.Title)" ValueProperty="@nameof(SpecializationDTO.Id)" />
+                            <RadzenDataAnnotationValidator Component="Specialization" Popup=true Style="position: relative" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Сохранить" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Click="@((args) => DialogService.Close(false))" Variant="Variant.Flat" Text="Закрыть" Style="width: 120px" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>

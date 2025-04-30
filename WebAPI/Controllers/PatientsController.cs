@@ -7,6 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Entities;
 using Data;
+using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
+using WebAPI.SignalR;
+using Shared.DTO;
+using Shared.Models;
+using WebAPI.Filters;
+using WebAPI.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using Shared.Constants;
 
 namespace WebAPI.Controllers
 {
@@ -14,90 +23,183 @@ namespace WebAPI.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
+        private readonly IHubContext<MainHub, IMainHub> _hubContext;
         private readonly HealthyTeethDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<PatientsController> _logger;
 
-        public PatientsController(HealthyTeethDbContext context)
+        public PatientsController(HealthyTeethDbContext context, IMapper mapper, IHubContext<MainHub, IMainHub> hubContext, ILogger<PatientsController> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
-        // GET: api/Patients
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<DataServiceResult<PatientDTO>>> GetPatients(string? fullname, string? phonenumber, string? passport, string? orderBy, string top, string skip)
         {
-            return await _context.Patients.ToListAsync();
-        }
+            var orderBySplit = orderBy?.Split(' ');
 
-        // GET: api/Patients/5
+            PatientFilter filter;
+            try
+            {
+                filter = new PatientFilter(fullname, phonenumber, passport, orderBySplit?[1], orderBySplit?[0], int.Parse(top), int.Parse(skip));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Неккоректно заданные параметры");
+            }
+            if (orderBySplit == null)
+            {
+                filter.OrderBy = "Id";
+                filter.OrderDirection = "asc";
+            }
+
+            IQueryable<Patient> patients;
+
+            if (filter.OrderDirection == "asc")
+            {
+                patients = _context.Patients
+                                  .Where(filter.FilterExpression)
+                                  .OrderBy(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                  .AsQueryable();
+            }
+            else
+            {
+                patients = _context.Patients
+                                 .Where(filter.FilterExpression)
+                                 .OrderByDescending(p => GetPropertyHelper.GetPropertyValue(p, filter.OrderBy))
+                                 .AsQueryable();
+            }
+
+            var count = patients.Count();
+
+            patients = patients.Skip(filter.Skip).Take(filter.Top);
+
+            return new DataServiceResult<PatientDTO>(_mapper.Map<IEnumerable<PatientDTO>>(patients), count);
+        }
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}, {Roles.DOCTOR}")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<PatientDTO>> GetPatient(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
-            return patient;
+            return Ok(_mapper.Map<PatientDTO>(patient));
         }
-
-        // PUT: api/Patients/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutPatient(int id, PatientDTO patient)
         {
-            if (id != patient.Id)
+            if (ModelState.IsValid)
             {
-                return BadRequest();
-            }
-
-            _context.Entry(patient).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PatientExists(id))
+                if (id != patient.Id)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                var patientDb = await _context.Patients.FirstOrDefaultAsync(p => p.Id == id);
+                patientDb.FirstName = patient.FirstName;
+                patientDb.LastName = patient.LastName;
+                patientDb.MiddleName = patient.MiddleName;
+                patientDb.DateOfBirth = patient.DateOfBirth;
+                patientDb.Gender = patient.Gender;
+                patientDb.Phone = patient.Phone;
+                patientDb.Address = patient.Address;
+                patientDb.City = patient.City;
+                patientDb.PassportNumber = patient.PassportNumber;
+                patientDb.PassportCode = patient.PassportCode;
+                patientDb.MedicalPolicy = patient.MedicalPolicy;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PatientExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} обновил пациента с id {patient.Id}");
+                return Ok("Пациент успешно обновлён");
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
-
-        // POST: api/Patients
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<Patient>> PostPatient(PatientDTO patient)
         {
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                var dbPatient = new Patient()
+                {
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    MiddleName = patient.MiddleName,
+                    DateOfBirth = patient.DateOfBirth,
+                    Gender = patient.Gender,
+                    Phone = patient.Phone,
+                    Address = patient.Address,
+                    City = patient.City,
+                    MedicalPolicy = patient.MedicalPolicy,
+                    PassportCode = patient.PassportCode,
+                    PassportNumber = patient.PassportNumber
+                };
+                _context.Patients.Add(dbPatient);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPatient", new { id = patient.Id }, patient);
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                _logger.LogInformation($"Пользователь {HttpContext.User.Identity.Name} добавил пациента с id {patient.Id}");
+                return CreatedAtAction("GetPatient", new { id = dbPatient.Id }, dbPatient);
+            }
+            else
+            {
+                return BadRequest("Данные не прошли проверку");
+            }
         }
 
-        // DELETE: api/Patients/5
+        [Authorize(Roles = $"{Roles.ADMIN}, {Roles.REGISTRATOR}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients.Include(p => p.Visits).FirstOrDefaultAsync(p => p.Id == id);
             if (patient == null)
             {
                 return NotFound();
             }
 
-            _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
+            if (patient.Visits.Count > 0)
+                return BadRequest("Пациент имеет записи в посещениях");
 
-            return NoContent();
+            try
+            {
+                _context.Patients.Remove(patient);
+                await _context.SaveChangesAsync();
+                await _hubContext.Clients.Groups(Roles.ADMIN, Roles.REGISTRATOR, Roles.DOCTOR).PatientsChanged("Успешно");
+                _logger.LogWarning($"Пользователь {HttpContext.User.Identity.Name} удалил пациента с id {patient.Id}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Не удалось удалить пациента: " + ex.Message);
+            }
+           
+            return Ok();
         }
 
         private bool PatientExists(int id)

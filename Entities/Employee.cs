@@ -19,17 +19,17 @@ namespace Entities
         [MaxLength(30)]
         [Required]
         public string MiddleName { get; set; }
+        public string FullName { get; private set; }
         [Required]
-        [MaxLength(1)]
-        public string Gender { get; set; }
+        public int Gender { get; set; }
         [Required]
-        public  DateTime DateOfBirth { get; set; }
-        [MaxLength(11)]
+        public DateOnly DateOfBirth { get; set; }
+        [MaxLength(18)]
         [Required]
         public string Phone { get; set; }
         [Required]
         public int SpecializationId { get; set; }
-        public virtual Account? Account { get; set; }    
+        public virtual Account? Account { get; set; }
         public virtual Specialization? Specialization { get; set; }
         public virtual List<Visit>? Visits { get; set; }
         public virtual List<Schedule>? Schedules { get; set; }

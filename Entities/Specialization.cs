@@ -11,7 +11,8 @@ namespace Entities
     {
         public int Id { get; set; }
         [MaxLength(50)]
-        public required string Title { get; set; }
+        [Required]
+        public string Title { get; set; }
         public virtual List<Employee>? Employees { get; set; }
         public virtual List<Service>? Services { get; set; }
     }

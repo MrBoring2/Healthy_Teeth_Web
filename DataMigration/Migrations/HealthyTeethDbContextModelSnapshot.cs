@@ -18,9 +18,6 @@ namespace DataMigration.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.8")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -48,6 +45,9 @@ namespace DataMigration.Migrations
 
                     b.HasKey("EmployeeId");
 
+                    b.HasIndex("Login")
+                        .IsUnique();
+
                     b.HasIndex("RoleId");
 
                     b.ToTable("Accounts");
@@ -61,7 +61,7 @@ namespace DataMigration.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("DateOfBirth")
+                    b.Property<DateOnly>("DateOfBirth")
                         .HasColumnType("date");
 
                     b.Property<string>("FirstName")
@@ -69,10 +69,14 @@ namespace DataMigration.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<string>("Gender")
+                    b.Property<string>("FullName")
                         .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("character varying(1)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("trim(\"FirstName\" || ' ' || \"LastName\" || ' ' || \"MiddleName\")", true);
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -86,13 +90,15 @@ namespace DataMigration.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
                     b.Property<int>("SpecializationId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FullName");
 
                     b.HasIndex("SpecializationId");
 
@@ -101,6 +107,12 @@ namespace DataMigration.Migrations
 
             modelBuilder.Entity("Entities.EmployeeRefreshToken", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
@@ -110,7 +122,12 @@ namespace DataMigration.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiryDate")
                         .HasColumnType("date");
 
-                    b.HasKey("EmployeeId");
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
 
                     b.ToTable("EmployeeRefreshTokens");
                 });
@@ -123,36 +140,29 @@ namespace DataMigration.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ApartmentNuber")
-                        .HasColumnType("integer");
+                    b.Property<string>("Address")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("City")
-                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("District")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("character varying(1)");
+                    b.Property<string>("FullName")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("trim(\"FirstName\" || ' ' || \"LastName\" || ' ' || \"MiddleName\")", true);
 
-                    b.Property<string>("Home")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                    b.Property<int?>("Gender")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -160,7 +170,6 @@ namespace DataMigration.Migrations
                         .HasColumnType("character varying(30)");
 
                     b.Property<string>("MedicalPolicy")
-                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
@@ -169,27 +178,29 @@ namespace DataMigration.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<string>("PassportCode")
-                        .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("character varying(6)");
+                    b.Property<string>("Passport")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("trim(\"PassportCode\" || ' ' || \"PassportNumber\")", true);
 
-                    b.Property<string>("PassportNumber")
-                        .IsRequired()
+                    b.Property<string>("PassportCode")
                         .HasMaxLength(4)
                         .HasColumnType("character varying(4)");
 
+                    b.Property<string>("PassportNumber")
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)");
+
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FullName");
+
+                    b.HasIndex("Passport");
 
                     b.ToTable("Patients");
                 });
@@ -226,20 +237,18 @@ namespace DataMigration.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
-                    b.Property<TimeSpan>("TimeFrom")
-                        .HasColumnType("interval");
+                    b.Property<TimeOnly>("TimeFrom")
+                        .HasColumnType("time without time zone");
 
-                    b.Property<TimeSpan>("TimeTo")
-                        .HasColumnType("interval");
+                    b.Property<TimeOnly>("TimeTo")
+                        .HasColumnType("time without time zone");
 
-                    b.Property<int>("WeekdayId")
+                    b.Property<int>("Weekday")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
-
-                    b.HasIndex("WeekdayId");
 
                     b.ToTable("Schedules");
                 });
@@ -266,6 +275,8 @@ namespace DataMigration.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SpecializationId");
+
+                    b.HasIndex("Title");
 
                     b.ToTable("Services");
                 });
@@ -320,11 +331,11 @@ namespace DataMigration.Migrations
                     b.Property<int>("PatientId")
                         .HasColumnType("integer");
 
-                    b.Property<TimeSpan>("VisirtTime")
-                        .HasColumnType("interval");
+                    b.Property<TimeOnly>("VisirtTime")
+                        .HasColumnType("time without time zone");
 
-                    b.Property<DateTime>("VisitDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("VisitDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("VisitDiagnos")
                         .HasColumnType("text");
@@ -345,6 +356,10 @@ namespace DataMigration.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("PatientId");
+
+                    b.HasIndex("VisirtTime");
+
+                    b.HasIndex("VisitDate");
 
                     b.HasIndex("VisitStatusId");
 
@@ -369,24 +384,6 @@ namespace DataMigration.Migrations
                     b.ToTable("VisitStatuses");
                 });
 
-            modelBuilder.Entity("Entities.Weekday", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Weekdays");
-                });
-
             modelBuilder.Entity("Entities.Account", b =>
                 {
                     b.HasOne("Entities.Employee", "Employee")
@@ -399,7 +396,7 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Role", "Role")
                         .WithMany("Accounts")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Account_Role");
 
@@ -413,7 +410,7 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Specialization", "Specialization")
                         .WithMany("Employees")
                         .HasForeignKey("SpecializationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Employee_Specialization");
 
@@ -423,8 +420,8 @@ namespace DataMigration.Migrations
             modelBuilder.Entity("Entities.EmployeeRefreshToken", b =>
                 {
                     b.HasOne("Entities.Account", "Account")
-                        .WithOne("EmployeeRefreshToken")
-                        .HasForeignKey("Entities.EmployeeRefreshToken", "EmployeeId")
+                        .WithMany("EmployeeRefreshTokens")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Employee_RefreshToken");
@@ -441,16 +438,7 @@ namespace DataMigration.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Schedule_Employee");
 
-                    b.HasOne("Entities.Weekday", "Weekday")
-                        .WithMany("Schedules")
-                        .HasForeignKey("WeekdayId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Schedule_Weekday");
-
                     b.Navigation("Employee");
-
-                    b.Navigation("Weekday");
                 });
 
             modelBuilder.Entity("Entities.Service", b =>
@@ -458,7 +446,7 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Specialization", "Specialization")
                         .WithMany("Services")
                         .HasForeignKey("SpecializationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Service_Specialization");
 
@@ -470,13 +458,13 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Service", "Service")
                         .WithMany("ServiceToVisits")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Entities.Visit", "Visit")
                         .WithMany("ServiceToVisits")
                         .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Service");
@@ -489,14 +477,14 @@ namespace DataMigration.Migrations
                     b.HasOne("Entities.Employee", "Employee")
                         .WithMany("Visits")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired()
                         .HasConstraintName("FK_Visit_Employee");
 
                     b.HasOne("Entities.Patient", "Patient")
                         .WithMany("Visits")
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Visit_Patient");
 
@@ -515,8 +503,7 @@ namespace DataMigration.Migrations
 
             modelBuilder.Entity("Entities.Account", b =>
                 {
-                    b.Navigation("EmployeeRefreshToken")
-                        .IsRequired();
+                    b.Navigation("EmployeeRefreshTokens");
                 });
 
             modelBuilder.Entity("Entities.Employee", b =>
@@ -558,11 +545,6 @@ namespace DataMigration.Migrations
             modelBuilder.Entity("Entities.VisitStatus", b =>
                 {
                     b.Navigation("Visits");
-                });
-
-            modelBuilder.Entity("Entities.Weekday", b =>
-                {
-                    b.Navigation("Schedules");
                 });
 #pragma warning restore 612, 618
         }
